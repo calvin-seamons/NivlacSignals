@@ -160,3 +160,4 @@ cython_debug/
 
 venv/pyvenv.cfg
 alpaca_config.py
+alpaca_config.yaml

@@ -1,15 +1,18 @@
 import alpaca_trade_api as tradeapi
-import os
-import alpaca_config as AlpacaConfig
+import yaml
 
-config = AlpacaConfig()
-API_KEY, SECRET_KEY, BASE_URL = config.get_credentials()
+# Load Alpaca API credentials from the YAML configuration file
+with open("alpaca_config.yaml", "r") as file:
+    config = yaml.safe_load(file)
+    api_key = config['alpaca']['api_key']
+    secret_key = config['alpaca']['secret_key']
+    base_url = config['alpaca']['base_url']
 
 # Create an API object to interact with Alpaca's API
 api = tradeapi.REST(
-    os.getenv('APCA_API_KEY_ID'),
-    os.getenv('APCA_API_SECRET_KEY'),
-    os.getenv('APCA_API_BASE_URL'),
+    api_key,
+    secret_key,
+    base_url,
     api_version='v2'
 )
 

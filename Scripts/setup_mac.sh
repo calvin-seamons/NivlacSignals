@@ -49,9 +49,25 @@ conda activate $ENV_NAME
 echo "Installing requirements from requirements.txt"
 pip install -r requirements.txt
 
+# Source the appropriate shell profile
 source ~/.bash_profile
-source ~/.zshrc
 
+# Activate the conda environment
 conda activate $ENV_NAME
 
-echo "Setup complete. To activate the environment, run 'conda activate $ENV_NAME'"
+# Create a YAML configuration file for Alpaca API credentials
+CONFIG_FILE="alpaca_config.yaml"
+
+# Check if the YAML configuration file already exists
+if [[ -f "$CONFIG_FILE" ]]; then
+  echo "Configuration file $CONFIG_FILE already exists. Skipping creation."
+else
+  echo "Creating configuration file: $CONFIG_FILE"
+  cat <<EOL > $CONFIG_FILE
+alpaca:
+  api_key: "YOUR_API_KEY_HERE"
+  secret_key: "YOUR_SECRET_KEY_HERE"
+  base_url: "https://paper-api.alpaca.markets"
+EOL
+  echo "Configuration file created. Please edit $CONFIG_FILE to add your Alpaca API credentials."
+fi
