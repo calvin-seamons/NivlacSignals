@@ -1,12 +1,13 @@
+import datetime
 import alpaca_trade_api as tradeapi
 import yaml
 
-# Load Alpaca API credentials from the YAML configuration file
+# Load Alpaca API credentials from YAML configuration
 with open("alpaca_config.yaml", "r") as file:
     config = yaml.safe_load(file)
-    api_key = config['alpaca']['api_key']
-    secret_key = config['alpaca']['secret_key']
-    base_url = config['alpaca']['base_url']
+api_key = config['alpaca']['api_key']
+secret_key = config['alpaca']['secret_key']
+base_url = config['alpaca']['base_url']
 
 # Create an API object to interact with Alpaca's API
 api = tradeapi.REST(
@@ -16,15 +17,36 @@ api = tradeapi.REST(
     api_version='v2'
 )
 
-def main():
-    # Account information to confirm we're connected properly
-    account = api.get_account()
-    print(f"Account status: {account.status}")
-    print(f"Cash available: {account.cash}")
+def get_stock_data(ticker):
+    """
+    Fetch historical data for a stock ticker using Alpaca.
+    """
+    try:
+        # Fetching data for the last 6 months (using daily bars)
+        end_date = datetime.datetime.now() - datetime.timedelta(days=1)
+        start_date = end_date - datetime.timedelta(days=180)
+        bars = api.get_bars(ticker, timeframe='1Day', start=start_date.strftime('%Y-%m-%d'), end=end_date.strftime('%Y-%m-%d')).df
+        if bars.empty:
+            raise ValueError("No data found for the ticker.")
+        return bars
+    except Exception as e:
+        print(f"Error fetching data for {ticker}: {e}")
+        return None
 
-    # Calculate how much AAPL stock can be bought with $1
-    aapl_quote = api.get_snapshot('AAPL')
-    print(f"AAPL price: {aapl_quote.minute_bar}")
+
+def main():
+    # Step 1: Set stock ticker to AAPL
+    ticker = 'AAPL'
+    print(f"Fetching data for {ticker}...")
+    stock_data = get_stock_data(ticker)
+
+    if stock_data is None:
+        print("Unable to fetch data. Exiting.")
+        return
+
+    print("Stock data retrieved successfully.")
+    # Display a preview of the fetched data
+    print(stock_data.tail())
 
 if __name__ == '__main__':
     main()
