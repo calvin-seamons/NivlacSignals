@@ -36,23 +36,22 @@ fi
 # Create conda environment name
 ENV_NAME="ns_env"
 
-# Create a new conda environment with Python
-echo "Creating conda environment: $ENV_NAME"
-conda create -n $ENV_NAME python=3.12 -y
-
-# Activate the new environment
-echo "Activating environment..."
-source "$(conda info --base)/etc/profile.d/conda.sh"
-conda activate $ENV_NAME
-
-# Install the requirements from requirements.txt
-echo "Installing requirements from requirements.txt"
-pip install -r requirements.txt
-
-# Source the appropriate shell profile
-source ~/.bash_profile
+# Check if the environment already exists
+if conda info --envs | grep -q "$ENV_NAME"; then
+  echo "Updating conda environment: $ENV_NAME"
+  conda env update -n $ENV_NAME --file requirements.txt --prune
+else
+  echo "Creating conda environment: $ENV_NAME"
+  conda create -n $ENV_NAME python=3.12 -y
+  # Activate the new environment and install requirements
+  source "$(conda info --base)/etc/profile.d/conda.sh"
+  conda activate $ENV_NAME
+  pip install -r requirements.txt
+fi
 
 # Activate the conda environment
+echo "Activating environment..."
+source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate $ENV_NAME
 
 # Create a YAML configuration file for Alpaca API credentials
