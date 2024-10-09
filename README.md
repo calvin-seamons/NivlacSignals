@@ -1,5 +1,5 @@
 # NivlacSignals
-Automated stock trading for the non weary of heart
+Automated stock trading for the weary of heart
 
 **Python Version:** 3.12
 
