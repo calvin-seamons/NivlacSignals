@@ -1,104 +1,79 @@
-import requests
-import statistics
-import datetime
 import alpaca_trade_api as tradeapi
-import yaml
 
 class UndervalueEstimator:
-    def __init__(self, ticker, api, stock_data=None):
-        self.api = api
-        self.ticker = ticker
-        self.stock_data = stock_data
-        self.metrics = self._get_fundamental_metrics()
-        self.industry_metrics = self._get_industry_average()
+    def __init__(self, ticker, api):
+        """
+        Initialize the UndervalueEstimator with a stock ticker and Alpaca API object.
+        
+        :param ticker: The stock ticker symbol
+        :param api: An instance of the Alpaca API
+        """
+        pass
 
     @staticmethod
     def get_industry_peers(ticker, api):
         """
         Fetch industry peers for the given stock ticker using Alpaca API.
+        
+        :param ticker: The stock ticker symbol
+        :param api: An instance of the Alpaca API
+        :return: A list of peer stock tickers
         """
-        try:
-            # Placeholder for actual API call to get industry peers
-            # Replace this with an appropriate data source
-            return ["MSFT", "GOOGL", "AMZN"]
-        except Exception as e:
-            print(f"Error fetching industry peers for {ticker}: {e}")
-            return []
+        pass
 
     @staticmethod
     def get_stock_metrics(ticker, api):
         """
         Fetch financial metrics for a stock ticker from Alpaca API.
+        
+        Metrics to retrieve:
+        1. P/E Ratio (Price to Earnings Ratio)
+        2. P/B Ratio (Price to Book Ratio)
+        3. Debt to Equity Ratio
+        4. Earnings Growth Rate
+        5. Current Price
+        6. Market Capitalization
+        7. Revenue
+        8. Net Income
+        9. Total Assets
+        10. Total Liabilities
+        11. Free Cash Flow
+        
+        Note: Some of these metrics might be used for calculating others or for the DCF analysis.
+        
+        :param ticker: The stock ticker symbol
+        :param api: An instance of the Alpaca API
+        :return: A dictionary containing the fetched financial metrics
         """
-        try:
-            # Fetch fundamental data using Alpaca or another API
-            # Placeholder: Replace with an actual API call to get metrics
-            timeframe = '1D'
-            fundamentals = api.get_bars(ticker, timeframe)  # Replace with the actual API method
-            metrics = {
-                "PE": fundamentals.pe_ratio,
-                "PB": fundamentals.pb_ratio,
-                "DCF": 150.0,  # Placeholder for DCF, should be calculated separately
-                "debt_to_equity": fundamentals.debt_to_equity,
-                "earnings_growth": fundamentals.earnings_growth
-            }
-            return metrics
-        except Exception as e:
-            print(f"Error fetching metrics for {ticker}: {e}")
-            return {}
+        pass
 
     def _get_fundamental_metrics(self):
         """
-        Get fundamental metrics for the stock.
+        Get fundamental metrics for the stock using Alpaca API.
+        
+        :return: A dictionary of fundamental metrics
         """
-        return self.get_stock_metrics(self.ticker, self.api)
+        pass
 
     def _get_industry_average(self):
         """
-        Get industry average P/E and P/B ratios.
+        Calculate industry average P/E and P/B ratios using Alpaca API data.
+        
+        :return: A dictionary containing average P/E and P/B ratios
         """
-        peers = self.get_industry_peers(self.ticker, self.api)
-        peer_metrics = [self.get_stock_metrics(peer, self.api) for peer in peers]
-        avg_pe = statistics.mean([metrics['PE'] for metrics in peer_metrics if 'PE' in metrics])
-        avg_pb = statistics.mean([metrics['PB'] for metrics in peer_metrics if 'PB' in metrics])
-        return {"avg_pe": avg_pe, "avg_pb": avg_pb}
+        pass
 
     def evaluate_undervaluation(self):
         """
-        Evaluate the undervaluation score of the stock.
+        Evaluate the undervaluation score of the stock based on various metrics.
+        
+        This method will:
+        1. Check for P/E ratio undervaluation
+        2. Check for P/B ratio undervaluation
+        3. Perform DCF analysis
+        4. Assess debt-to-equity ratio
+        5. Evaluate earnings growth
+        
+        :return: An undervaluation score (0-100)
         """
-        pe = self.metrics.get("PE")
-        pb = self.metrics.get("PB")
-        dcf = self.metrics.get("DCF")
-        debt_to_equity = self.metrics.get("debt_to_equity")
-        earnings_growth = self.metrics.get("earnings_growth")
-
-        if not all([pe, pb, dcf, debt_to_equity, earnings_growth]):
-            print("Missing data to evaluate undervaluation.")
-            return 0
-
-        # Calculate P/E undervaluation
-        industry_pe = self.industry_metrics.get("avg_pe")
-        pe_undervaluation = 1 if pe < 0.8 * industry_pe else 0
-
-        # Calculate P/B undervaluation
-        industry_pb = self.industry_metrics.get("avg_pb")
-        pb_undervaluation = 1 if pb < 0.8 * industry_pb else 0
-
-        # Check DCF analysis
-        # Placeholder value for intrinsic value, should be calculated separately
-        intrinsic_value = 200.0  # Replace with an actual DCF calculation
-        dcf_undervaluation = 1 if dcf < intrinsic_value else 0
-
-        # Check debt-to-equity ratio
-        debt_to_equity_score = 1 if debt_to_equity < 0.5 else 0
-
-        # Check earnings growth
-        earnings_growth_score = 1 if earnings_growth > 0 else 0
-
-        # Sum up all scores and calculate the final undervaluation score (out of 100)
-        scores = [pe_undervaluation, pb_undervaluation, dcf_undervaluation, debt_to_equity_score, earnings_growth_score]
-        undervaluation_score = sum(scores) / len(scores) * 100
-
-        return undervaluation_score
-    
+        pass
