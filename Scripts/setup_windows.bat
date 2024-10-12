@@ -1,72 +1,112 @@
 @echo off
-
-REM Exit script if any command fails
 setlocal enabledelayedexpansion
 
-REM Function to check if a command exists
-:command_exists
-where %1 >nul 2>nul
-if not errorlevel 1 (exit /b 0) else (exit /b 1)
+:: Check for admin rights
+net session >nul 2>&1
+if %errorlevel% neq 0 (
+    echo Requesting administrative privileges...
+    goto UACPrompt
+) else ( goto gotAdmin )
 
-REM Check for Chocolatey, install if not found
-call :command_exists choco
-if errorlevel 1 (
-    echo Chocolatey not found. Installing Chocolatey...
-    @powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))"
+:UACPrompt
+    echo Set UAC = CreateObject^("Shell.Application"^) > "%temp%\getadmin.vbs"
+    echo UAC.ShellExecute "%~s0", "", "", "runas", 1 >> "%temp%\getadmin.vbs"
+    "%temp%\getadmin.vbs"
+    exit /B
+
+:gotAdmin
+    if exist "%temp%\getadmin.vbs" ( del "%temp%\getadmin.vbs" )
+    pushd "%CD%"
+    CD /D "%~dp0"
+
+:: Check if Chocolatey is installed
+where choco >nul 2>nul
+if %errorlevel% neq 0 (
+    echo Chocolatey is not installed. Installing Chocolatey...
+    @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "[System.Net.ServicePointManager]::SecurityProtocol = 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))" && SET "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
+) else (
+    echo Chocolatey is already installed.
 )
 
-REM Check for Miniconda, install if not found
-call :command_exists conda
-if errorlevel 1 (
-    echo Miniconda not found. Installing Miniconda via Chocolatey...
-    choco install miniconda -y
-    call "%SystemDrive%\tools\miniconda3\Scripts\conda.exe" init
-    echo Miniconda installed. Please restart your terminal and re-run the script.
-    exit /b 0
+:: Check if Miniconda is installed
+where conda >nul 2>nul
+if %errorlevel% neq 0 (
+    echo Miniconda is not installed. Installing Miniconda...
+    choco install miniconda3 -y
+    call refreshenv
+) else (
+    echo Miniconda is already installed.
 )
 
-REM Navigate to the NivlacSignals directory
-cd /d "%~dp0\.."
+:: Ensure we're in the NivlacSignals Directory
+cd /d %~dp0
+if not "%CD%"=="%CD:\Scripts=%" (
+    cd ..
+)
 
-REM Check if requirements.txt exists
-if not exist "requirements.txt" (
-    echo Error: requirements.txt file not found!
+:: Check for requirements.txt
+if not exist requirements.txt (
+    echo Error: requirements.txt not found in the current directory.
     exit /b 1
 )
 
-REM Create conda environment name
-set "ENV_NAME=ns_env"
-
-REM Check if the environment already exists
-conda info --envs | findstr /c:"%ENV_NAME%" >nul
-if %errorlevel% == 0 (
-    echo Updating conda environment: %ENV_NAME%
-    conda env update -n %ENV_NAME% --file requirements.txt --prune
+:: Check if conda environment exists, create if it doesn't, or update if it does
+conda info --envs | findstr /C:"ns_env" >nul
+if %errorlevel% neq 0 (
+    echo Creating new conda environment 'ns_env' with Python 3.12...
+    call conda create -n ns_env python=3.12 -y
+    if %errorlevel% neq 0 (
+        echo Error: Failed to create conda environment. Exiting.
+        exit /b 1
+    )
 ) else (
-    echo Creating conda environment: %ENV_NAME%
-    conda create -n %ENV_NAME% python=3.12 -y
-    REM Activate the new environment and install requirements
-    call "%SystemDrive%\tools\miniconda3\Scripts\activate" base
-    conda activate %ENV_NAME%
-    pip install -r requirements.txt
+    echo Conda environment 'ns_env' already exists. Updating...
+    call conda activate ns_env
+    call conda update --all -y
+    if %errorlevel% neq 0 (
+        echo Error: Failed to update conda environment. Exiting.
+        exit /b 1
+    )
 )
 
-REM Activate the conda environment
-echo Activating environment...
-call "%SystemDrive%\tools\miniconda3\Scripts\activate" base
-conda activate %ENV_NAME%
+:: Activate the environment and update PATH
+call conda activate ns_env
+set "PATH=%CONDA_PREFIX%;%CONDA_PREFIX%\Scripts;%PATH%"
 
-REM Create a YAML configuration file for Alpaca API credentials
+:: Verify conda and pip are accessible
+where conda
+where pip
+if %errorlevel% neq 0 (
+    echo Error: conda or pip not found in PATH. Exiting.
+    exit /b 1
+)
+
+:: Install or update requirements from requirements.txt
+echo Installing/updating requirements from requirements.txt...
+pip install -r requirements.txt --upgrade --no-cache-dir
+if %errorlevel% neq 0 (
+    echo Error: Failed to install/update requirements. Please check your requirements.txt file and try again.
+    echo Attempting to install packages one by one...
+    for /F "tokens=1 delims==" %%i in (requirements.txt) do (
+        echo Installing %%i...
+        pip install %%i --upgrade --no-cache-dir
+        if %errorlevel% neq 0 (
+            echo Warning: Failed to install %%i. Continuing with next package...
+        )
+    )
+)
+
+:: Create alpaca_config.yaml if it doesn't exist
 set "CONFIG_FILE=alpaca_config.yaml"
-
-REM Check if the YAML configuration file already exists
-if exist "%CONFIG_FILE%" (
-    echo Configuration file %CONFIG_FILE% already exists. Skipping creation.
-) else (
+if not exist %CONFIG_FILE% (
     echo Creating configuration file: %CONFIG_FILE%
     echo alpaca:> %CONFIG_FILE%
     echo   api_key: "YOUR_API_KEY_HERE">> %CONFIG_FILE%
     echo   secret_key: "YOUR_SECRET_KEY_HERE">> %CONFIG_FILE%
     echo   base_url: "https://paper-api.alpaca.markets">> %CONFIG_FILE%
-    echo Configuration file created. Please edit %CONFIG_FILE% to add your Alpaca API credentials.
+    echo Configuration file created: %CONFIG_FILE%
+) else (
+    echo Configuration file already exists: %CONFIG_FILE%
 )
+
+echo Setup completed successfully.

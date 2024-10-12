@@ -2,9 +2,10 @@ import datetime
 import alpaca_trade_api as tradeapi
 import yaml
 from UndervalueEstimator import UndervalueEstimator
+import os
 
 # Load Alpaca API credentials from YAML configuration
-with open("alpaca_config.yaml", "r") as file:
+with open(os.path.join("..", "alpaca_config.yaml"), "r") as file:
     config = yaml.safe_load(file)
 api_key = config['alpaca']['api_key']
 secret_key = config['alpaca']['secret_key']
@@ -40,8 +41,8 @@ def main():
     print(f"Fetching data for {ticker}...")
     stock_data = get_stock_data(ticker)
 
-    if stock_data is None:
-        print("Unable to fetch data. Exiting.")
+    if not stock_data.empty:
+        print(stock_data.tail())
     else:
         print("Stock data retrieved successfully.")
         undervalue_estimator = UndervalueEstimator(ticker, api, stock_data)
