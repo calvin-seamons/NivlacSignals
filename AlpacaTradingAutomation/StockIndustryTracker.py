@@ -93,6 +93,6 @@ class StockIndustryTracker:
                 print(f"  {ticker}: P/E {pe:.2f}")
 
 # Usage example
-tracker = StockIndustryTracker()
+# tracker = StockIndustryTracker()
 
-print(tracker.get_industry_pe("Discount Stores"))
+# print(tracker.get_industry_pe("Discount Stores"))
