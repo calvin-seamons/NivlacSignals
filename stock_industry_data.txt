@@ -1,0 +1,387 @@
+{
+  "Consumer Electronics": {
+    "stocks": {
+      "AAPL": 35.206688,
+      "SONY": 17.841122
+    },
+    "total_pe": 53.04781,
+    "count": 2
+  },
+  "Software - Infrastructure": {
+    "stocks": {
+      "MSFT": 35.702072,
+      "SQ": 66.36574,
+      "ORCL": 45.46005,
+      "ADBE": 43.25106,
+      "CRWD": 444.04285,
+      "PLTR": 255.52823
+    },
+    "total_pe": 890.350002,
+    "count": 6
+  },
+  "Internet Content & Information": {
+    "stocks": {
+      "GOOGL": 23.747906,
+      "BIDU": 12.775128,
+      "TCEHY": 24.8,
+      "PINS": 117.22414,
+      "SPOT": 149.332
+    },
+    "total_pe": 327.87917400000003,
+    "count": 5
+  },
+  "Internet Retail": {
+    "stocks": {
+      "AMZN": 44.875893,
+      "BABA": 27.32741,
+      "PDD": 14.348103,
+      "JD": 15.7375,
+      "MELI": 75.368835,
+      "ETSY": 23.074417,
+      "CHWY": 34.29518
+    },
+    "total_pe": 235.027338,
+    "count": 7
+  },
+  "Auto Manufacturers": {
+    "stocks": {
+      "TSLA": 61.79158,
+      "TM": 7.0739393,
+      "HMC": 6.7447033,
+      "F": 11.385417,
+      "GM": 5.466854,
+      "LI": 19.5625,
+      "BYDDY": 23.100946,
+      "VWAGY": 3.208589
+    },
+    "total_pe": 138.3345286,
+    "count": 8
+  },
+  "Semiconductors": {
+    "stocks": {
+      "NVDA": 64.931915,
+      "INTC": 98.020836,
+      "AMD": 197.13095,
+      "QCOM": 22.74936,
+      "TXN": 36.208332,
+      "AVGO": 148.34146,
+      "TSM": 34.47048
+    },
+    "total_pe": 601.853333,
+    "count": 7
+  },
+  "Banks - Diversified": {
+    "stocks": {
+      "JPM": 12.312571,
+      "C": 18.277626,
+      "BAC": 14.710526,
+      "WFC": 12.931186,
+      "MUFG": 12.732142
+    },
+    "total_pe": 70.964051,
+    "count": 5
+  },
+  "Drug Manufacturers - General": {
+    "stocks": {
+      "JNJ": 24.492424,
+      "MRK": 20.316666,
+      "LLY": 114.82245,
+      "ABBV": 65.518394,
+      "AMGN": 55.91911,
+      "GILD": 103.76829,
+      "GSK": 13.284745,
+      "SNY": 29.850542
+    },
+    "total_pe": 427.972621,
+    "count": 8
+  },
+  "Credit Services": {
+    "stocks": {
+      "V": 30.035332,
+      "AXP": 20.696789,
+      "PYPL": 19.572817
+    },
+    "total_pe": 70.30493799999999,
+    "count": 3
+  },
+  "Discount Stores": {
+    "stocks": {
+      "WMT": 41.885,
+      "COST": 53.81892,
+      "TGT": 16.321281
+    },
+    "total_pe": 112.025201,
+    "count": 3
+  },
+  "Beverages - Non-Alcoholic": {
+    "stocks": {
+      "KO": 28.626015,
+      "PEP": 25.985987
+    },
+    "total_pe": 54.612002000000004,
+    "count": 2
+  },
+  "Entertainment": {
+    "stocks": {
+      "DIS": 36.41954,
+      "NFLX": 44.464798
+    },
+    "total_pe": 80.88433800000001,
+    "count": 2
+  },
+  "Restaurants": {
+    "stocks": {
+      "MCD": 27.180544,
+      "SBUX": 26.546219
+    },
+    "total_pe": 53.726763000000005,
+    "count": 2
+  },
+  "Footwear & Accessories": {
+    "stocks": {
+      "NKE": 23.383955
+    },
+    "total_pe": 23.383955,
+    "count": 1
+  },
+  "Communication Equipment": {
+    "stocks": {
+      "CSCO": 21.366142
+    },
+    "total_pe": 21.366142,
+    "count": 1
+  },
+  "Telecom Services": {
+    "stocks": {
+      "VZ": 16.249998,
+      "T": 12.264368,
+      "CMCSA": 11.170213
+    },
+    "total_pe": 39.684579,
+    "count": 3
+  },
+  "Aerospace & Defense": {
+    "stocks": {
+      "GE": 51.924526,
+      "RTX": 72.485466
+    },
+    "total_pe": 124.409992,
+    "count": 2
+  },
+  "Farm & Heavy Construction Machinery": {
+    "stocks": {
+      "CAT": 17.951708
+    },
+    "total_pe": 17.951708,
+    "count": 1
+  },
+  "Conglomerates": {
+    "stocks": {
+      "MMM": 52.789883,
+      "HON": 24.789051
+    },
+    "total_pe": 77.578934,
+    "count": 2
+  },
+  "Healthcare Plans": {
+    "stocks": {
+      "UNH": 40.04825,
+      "CVS": 12.013346
+    },
+    "total_pe": 52.061596,
+    "count": 2
+  },
+  "Home Improvement Retail": {
+    "stocks": {
+      "HD": 27.970411,
+      "LOW": 23.21057
+    },
+    "total_pe": 51.180981,
+    "count": 2
+  },
+  "Medical Devices": {
+    "stocks": {
+      "ABT": 37.02997
+    },
+    "total_pe": 37.02997,
+    "count": 1
+  },
+  "Diagnostics & Research": {
+    "stocks": {
+      "DHR": 50.062614,
+      "TMO": 37.43114
+    },
+    "total_pe": 87.493754,
+    "count": 2
+  },
+  "Asset Management": {
+    "stocks": {
+      "BLK": 24.615385
+    },
+    "total_pe": 24.615385,
+    "count": 1
+  },
+  "Capital Markets": {
+    "stocks": {
+      "GS": 16.759783,
+      "MS": 18.47944
+    },
+    "total_pe": 35.239222999999996,
+    "count": 2
+  },
+  "Software - Application": {
+    "stocks": {
+      "CRM": 50.910995,
+      "ZM": 24.323215,
+      "INTU": 59.265835,
+      "SAP": 97.96203,
+      "SHOP": 84.58081,
+      "ADSK": 58.665302,
+      "WDAY": 41.73494,
+      "NOW": 170.75632,
+      "DDOG": 275.35104,
+      "UBER": 92.375,
+      "TTD": 231.43138
+    },
+    "total_pe": 1187.356867,
+    "count": 11
+  },
+  "Information Technology Services": {
+    "stocks": {
+      "IBM": 26.034266,
+      "ACN": 31.912588
+    },
+    "total_pe": 57.946854,
+    "count": 2
+  },
+  "Electronic Gaming & Multimedia": {
+    "stocks": {
+      "EA": 33.95765,
+      "NTES": 13.600638
+    },
+    "total_pe": 47.558288000000005,
+    "count": 2
+  },
+  "Oil & Gas Integrated": {
+    "stocks": {
+      "XOM": 14.845695,
+      "CVX": 15.025742,
+      "BP": 12.401163,
+      "TTE": 7.7151756,
+      "SHEL": 12.140958
+    },
+    "total_pe": 62.1287336,
+    "count": 5
+  },
+  "Oil & Gas E&P": {
+    "stocks": {
+      "COP": 12.177618,
+      "OXY": 13.976685,
+      "EOG": 10.165251
+    },
+    "total_pe": 36.319554,
+    "count": 3
+  },
+  "Biotechnology": {
+    "stocks": {
+      "NVO": 40.768707
+    },
+    "total_pe": 40.768707,
+    "count": 1
+  },
+  "Semiconductor Equipment & Materials": {
+    "stocks": {
+      "ASML": 46.5616
+    },
+    "total_pe": 46.5616,
+    "count": 1
+  },
+  "Utilities - Regulated Electric": {
+    "stocks": {
+      "DUK": 19.681198
+    },
+    "total_pe": 19.681198,
+    "count": 1
+  },
+  "Oil & Gas Midstream": {
+    "stocks": {
+      "AM": 19.506248,
+      "ENB": 21.63421,
+      "EPD": 11.250001,
+      "ET": 13.936974,
+      "MPLX": 10.684466
+    },
+    "total_pe": 77.01189899999999,
+    "count": 5
+  },
+  "Other Industrial Metals & Mining": {
+    "stocks": {
+      "BHP": 19.125402,
+      "RIO": 10.286474
+    },
+    "total_pe": 29.411876,
+    "count": 2
+  },
+  "Beverages - Wineries & Distilleries": {
+    "stocks": {
+      "DEO": 19.602026
+    },
+    "total_pe": 19.602026,
+    "count": 1
+  },
+  "Household & Personal Products": {
+    "stocks": {
+      "UL": 21.92361
+    },
+    "total_pe": 21.92361,
+    "count": 1
+  },
+  "Specialty Industrial Machinery": {
+    "stocks": {
+      "SIEGY": 18.554945
+    },
+    "total_pe": 18.554945,
+    "count": 1
+  },
+  "Travel Services": {
+    "stocks": {
+      "ABNB": 18.349659,
+      "CCL": 17.294872,
+      "RCL": 21.44989
+    },
+    "total_pe": 57.094421,
+    "count": 3
+  },
+  "Apparel Retail": {
+    "stocks": {
+      "LULU": 22.186245
+    },
+    "total_pe": 22.186245,
+    "count": 1
+  },
+  "Resorts & Casinos": {
+    "stocks": {
+      "LVS": 24.511736,
+      "WYNN": 13.394974
+    },
+    "total_pe": 37.90671,
+    "count": 2
+  },
+  "Lodging": {
+    "stocks": {
+      "MAR": 26.230963,
+      "HLT": 50.183544
+    },
+    "total_pe": 76.414507,
+    "count": 2
+  },
+  "Airlines": {
+    "stocks": {
+      "DAL": 7.3890433,
+      "UAL": 7.1244392,
+      "LUV": 233.73077
+    },
+    "total_pe": 248.24425250000002,
+    "count": 3
+  }
+}

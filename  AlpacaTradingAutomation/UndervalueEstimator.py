@@ -1,4 +1,5 @@
 import alpaca_trade_api as tradeapi
+import yfinance as yf
 
 class UndervalueEstimator:
     def __init__(self, ticker, api):
