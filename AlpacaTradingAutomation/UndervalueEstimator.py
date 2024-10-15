@@ -9,7 +9,8 @@ class UndervalueEstimator:
         :param ticker: The stock ticker symbol
         :param api: An instance of the Alpaca API
         """
-        pass
+        self.ticker = ticker
+        self.api = api
 
     @staticmethod
     def get_industry_peers(ticker, api):
@@ -23,9 +24,9 @@ class UndervalueEstimator:
         pass
 
     @staticmethod
-    def get_stock_metrics(ticker, api):
+    def get_stock_metrics(ticker):
         """
-        Fetch financial metrics for a stock ticker from Alpaca API.
+        Fetch financial metrics for a stock ticker using yfinance.
         
         Metrics to retrieve:
         1. P/E Ratio (Price to Earnings Ratio)
@@ -40,13 +41,31 @@ class UndervalueEstimator:
         10. Total Liabilities
         11. Free Cash Flow
         
-        Note: Some of these metrics might be used for calculating others or for the DCF analysis.
-        
         :param ticker: The stock ticker symbol
-        :param api: An instance of the Alpaca API
         :return: A dictionary containing the fetched financial metrics
         """
-        pass
+        stock = yf.Ticker(ticker)
+        info = stock.info
+        financials = stock.financials
+        balance_sheet = stock.balance_sheet
+        cash_flow = stock.cashflow
+        # print(stock.cash_flow)
+
+        metrics = {
+            "P/E Ratio": info.get("trailingPE"),
+            "P/B Ratio": info.get("priceToBook"),
+            "Debt to Equity Ratio": info.get("debtToEquity"),
+            "Earnings Growth Rate": info.get("earningsQuarterlyGrowth"),
+            "Current Price": info.get("currentPrice"),
+            "Market Capitalization": info.get("marketCap"),
+            "Revenue": financials.loc["Total Revenue"].iloc[0] if "Total Revenue" in financials.index else None,
+            "Net Income": financials.loc["Net Income"].iloc[0] if "Net Income" in financials.index else None,
+            "Total Assets": balance_sheet.loc["Total Assets"].iloc[0] if "Total Assets" in balance_sheet.index else None,
+            "Total Liabilities": balance_sheet.loc["Total Liabilities Net Minority Interest"].iloc[0] if "Total Liabilities Net Minority Interest" in balance_sheet.index else None,
+            "Free Cash Flow": cash_flow.loc["Free Cash Flow"].iloc[0] if "Free Cash Flow" in cash_flow.index else None
+        }
+
+        return metrics
 
     def _get_fundamental_metrics(self):
         """
@@ -78,3 +97,8 @@ class UndervalueEstimator:
         :return: An undervaluation score (0-100)
         """
         pass
+
+
+# Usage example
+metrics = UndervalueEstimator.get_stock_metrics("AAPL")
+print(metrics)
