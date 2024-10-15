@@ -40,6 +40,24 @@ class StockListUpdater:
         df = df[df['Symbol'] != 'File Creation Time:']
         
         return df['Symbol'].tolist()
+    
+    def get_nyse_tickers(self):
+        url = "https://www.nyse.com/api/quotes/filter"
+        payload = {
+            "instrumentType": "EQUITY",
+            "pageNumber": 1,
+            "sortColumn": "SYMBOL",
+            "sortOrder": "ASC",
+            "maxResultsPerPage": 10000,
+            "filterToken": ""
+        }
+        response = requests.post(url, json=payload)
+        data = response.json()
+        return [item['symbolTicker'] for item in data]
+    
+    def get_yfinance_tickers(self, exchange):
+        tickers = yf.Ticker(f"^{exchange}")
+        return [component for component in tickers.info['components']]
 
     def get_custom_tickers(self, filename):
         # Read custom list of tickers from a file
@@ -59,6 +77,16 @@ class StockListUpdater:
         tickers = self.get_nasdaq_tickers()
         print(f"Updating {len(tickers)} NASDAQ stocks...")
         return self.update_from_list(tickers)
+    
+    def update_nyse(self):
+        tickers = self.get_nyse_tickers()
+        print(f"Updating {len(tickers)} NYSE stocks...")
+        return self.update_from_list(tickers)
+
+    def update_exchange(self, exchange):
+        tickers = self.get_yfinance_tickers(exchange)
+        print(f"Updating {len(tickers)} {exchange} stocks...")
+        return self.update_from_list(tickers)
 
     def update_custom(self, filename):
         tickers = self.get_custom_tickers(filename)
@@ -69,17 +97,16 @@ class StockListUpdater:
         results = []
         results.extend(self.update_sp500())
         results.extend(self.update_nasdaq())
+        results.extend(self.update_nyse())
         return results
 
 # Usage example
 tracker = StockIndustryTracker()
 updater = StockListUpdater(tracker)
 
-# Update S&P 500 stocks
-# sp500_results = updater.update_sp500()
-
-# Update NASDAQ stocks
-nasdaq_results = updater.update_nasdaq()
+# Update all of them
+all_results = updater.update_all()
+updater.tracker.save_data()
 
 # Print the report
 tracker.print_report()
