@@ -1,5 +1,6 @@
 import alpaca_trade_api as tradeapi
 import yfinance as yf
+from StockIndustryTracker import StockIndustryTracker
 
 class UndervalueEstimator:
     def __init__(self, ticker, api):
@@ -11,18 +12,23 @@ class UndervalueEstimator:
         """
         self.ticker = ticker
         self.api = api
+        self.tracker = StockIndustryTracker()
 
-    @staticmethod
-    def get_industry_peers(ticker, api):
+    def get_industry_peers(self):
         """
-        Fetch industry peers for the given stock ticker using Alpaca API.
+        Fetch industry peers for the given stock ticker using StockIndustryTracker.
         
-        :param ticker: The stock ticker symbol
-        :param api: An instance of the Alpaca API
         :return: A list of peer stock tickers
         """
-        pass
-
+        stock = yf.Ticker(self.ticker)
+        industry = stock.info.get('industry', 'Unknown')
+        industry_peers = self.tracker.get_industry_data(industry)
+        
+        if industry in self.tracker.industry_data:
+            return industry_peers
+        else:
+            print(f"No industry data found for {self.ticker} in industry: {industry}")
+            return []
     @staticmethod
     def get_stock_metrics(ticker):
         """
@@ -62,7 +68,8 @@ class UndervalueEstimator:
             "Net Income": financials.loc["Net Income"].iloc[0] if "Net Income" in financials.index else None,
             "Total Assets": balance_sheet.loc["Total Assets"].iloc[0] if "Total Assets" in balance_sheet.index else None,
             "Total Liabilities": balance_sheet.loc["Total Liabilities Net Minority Interest"].iloc[0] if "Total Liabilities Net Minority Interest" in balance_sheet.index else None,
-            "Free Cash Flow": cash_flow.loc["Free Cash Flow"].iloc[0] if "Free Cash Flow" in cash_flow.index else None
+            "Free Cash Flow": cash_flow.loc["Free Cash Flow"].iloc[0] if "Free Cash Flow" in cash_flow.index else None,
+            "PEG Ratio": info.get("pegRatio")
         }
 
         return metrics
@@ -100,5 +107,6 @@ class UndervalueEstimator:
 
 
 # Usage example
-metrics = UndervalueEstimator.get_stock_metrics("AAPL")
-print(metrics)
+estimator = UndervalueEstimator("AAPL", api=None)
+peers = estimator.get_industry_peers()
+print(peers)

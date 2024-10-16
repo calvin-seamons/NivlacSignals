@@ -88,6 +88,14 @@ class StockIndustryTracker:
         if data['count'] > 0:
             return data['total_pb'] / data['count']
         return None
+    
+    def get_industry_data(self, industry):
+        # Make a dict of the industry pe and pb ratios
+        return {
+            'Industry': industry,
+            'pe': self.get_industry_pe(industry),
+            'pb': self.get_industry_pb(industry)
+        }
 
     def print_report(self):
         for industry, data in self.industry_data.items():
@@ -143,5 +151,5 @@ class StockIndustryTracker:
 
 
 # Usage example
-tracker = StockIndustryTracker()
-tracker.add_pb_ratio_to_existing_stocks()
+# tracker = StockIndustryTracker()
+# tracker.add_pb_ratio_to_existing_stocks()
