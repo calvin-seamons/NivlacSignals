@@ -100,13 +100,13 @@ class StockListUpdater:
         results.extend(self.update_nyse())
         return results
 
-# Usage example
-tracker = StockIndustryTracker()
-updater = StockListUpdater(tracker)
+# # Usage example
+# tracker = StockIndustryTracker()
+# updater = StockListUpdater(tracker)
 
-# Update all of them
-all_results = updater.update_all()
-updater.tracker.save_data()
+# # Update all of them
+# all_results = updater.update_all()
+# updater.tracker.save_data()
 
-# Print the report
-tracker.print_report()
+# # Print the report
+# tracker.print_report()
