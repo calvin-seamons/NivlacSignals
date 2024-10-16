@@ -29,6 +29,7 @@ class UndervalueEstimator:
         else:
             print(f"No industry data found for {self.ticker} in industry: {industry}")
             return []
+        
     @staticmethod
     def get_stock_metrics(ticker):
         """
@@ -79,14 +80,6 @@ class UndervalueEstimator:
         Get fundamental metrics for the stock using Alpaca API.
         
         :return: A dictionary of fundamental metrics
-        """
-        pass
-
-    def _get_industry_average(self):
-        """
-        Calculate industry average P/E and P/B ratios using Alpaca API data.
-        
-        :return: A dictionary containing average P/E and P/B ratios
         """
         pass
 
