@@ -13,6 +13,7 @@ class UndervalueEstimator:
         self.ticker = ticker
         self.api = api
         self.tracker = StockIndustryTracker()
+        self.stock = yf.Ticker(ticker)
 
     def get_industry_peers(self):
         """
@@ -30,8 +31,7 @@ class UndervalueEstimator:
             print(f"No industry data found for {self.ticker} in industry: {industry}")
             return []
         
-    @staticmethod
-    def get_stock_metrics(ticker):
+    def get_stock_metrics(self):
         """
         Fetch financial metrics for a stock ticker using yfinance.
         
@@ -51,12 +51,12 @@ class UndervalueEstimator:
         :param ticker: The stock ticker symbol
         :return: A dictionary containing the fetched financial metrics
         """
-        stock = yf.Ticker(ticker)
+        stock = self.stock
         info = stock.info
         financials = stock.financials
         balance_sheet = stock.balance_sheet
         cash_flow = stock.cashflow
-        # print(stock.cash_flow)
+        industry_peers = self.get_industry_peers()
 
         metrics = {
             "P/E Ratio": info.get("trailingPE"),
@@ -70,7 +70,8 @@ class UndervalueEstimator:
             "Total Assets": balance_sheet.loc["Total Assets"].iloc[0] if "Total Assets" in balance_sheet.index else None,
             "Total Liabilities": balance_sheet.loc["Total Liabilities Net Minority Interest"].iloc[0] if "Total Liabilities Net Minority Interest" in balance_sheet.index else None,
             "Free Cash Flow": cash_flow.loc["Free Cash Flow"].iloc[0] if "Free Cash Flow" in cash_flow.index else None,
-            "PEG Ratio": info.get("pegRatio")
+            "PEG Ratio": info.get("pegRatio"),
+            "Industry Peers": industry_peers
         }
 
         return metrics
@@ -102,4 +103,5 @@ class UndervalueEstimator:
 # Usage example
 estimator = UndervalueEstimator("AAPL", api=None)
 peers = estimator.get_industry_peers()
-print(peers)
+metrics = estimator.get_stock_metrics()
+print(metrics)
