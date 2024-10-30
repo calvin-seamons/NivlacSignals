@@ -1,7 +1,8 @@
-from volatility import volest
 import yfinance as yf
 import pandas as pd
 import time
+
+import volest
 
 # Common parameters
 estimator = 'GarmanKlass'

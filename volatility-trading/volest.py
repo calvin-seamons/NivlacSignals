@@ -310,6 +310,7 @@ class VolatilityEstimator(object):
         
         # set and format the y-axis labels
         locs = cones.get_yticks()
+        cones.set_yticks(locs)
         cones.set_yticklabels(map(f, locs))
         
         # turn on the grid
@@ -327,6 +328,7 @@ class VolatilityEstimator(object):
         
         # set and format the y-axis labels
         locs = box.get_yticks()
+        box.set_yticks(locs)
         box.set_yticklabels(map(f, locs))
         
         # move the y-axis ticks on the right side
@@ -383,6 +385,7 @@ class VolatilityEstimator(object):
         
         # set and format the y-axis labels
         locs = cones.get_yticks()
+        cones.set_yticks(locs)
         cones.set_yticklabels(map(f, locs))
         
         # turn on the grid
@@ -400,6 +403,7 @@ class VolatilityEstimator(object):
         
         # set and format the y-axis labels
         locs = box.get_yticks()
+        box.set_yticks(locs)
         box.set_yticklabels(map(f, locs))
         
         # move the y-axis ticks on the right side
@@ -464,6 +468,7 @@ class VolatilityEstimator(object):
         
         # set and format the y-axis labels
         locs = cones.get_yticks()
+        cones.set_yticks(locs)
         cones.set_yticklabels(map(f, locs))
         
         # turn on the grid
@@ -483,6 +488,7 @@ class VolatilityEstimator(object):
         
         # set and format the y-axis labels
         locs = box.get_yticks()
+        box.set_yticks(locs)
         box.set_yticklabels(map(f, locs))
         
         # move the y-axis ticks on the right side
@@ -591,6 +597,7 @@ class VolatilityEstimator(object):
         
         # set and format the y-axis labels
         locs = cones.get_yticks()
+        cones.set_yticks(locs)
         cones.set_yticklabels(map(f, locs))
         
         # turn on the grid
@@ -661,6 +668,7 @@ class VolatilityEstimator(object):
 
         # set and format the y-axis labels
         locs = cones.get_yticks()
+        cones.set_yticks(locs)
         cones.set_yticklabels(map(f, locs))
 
         # turn on the grid
