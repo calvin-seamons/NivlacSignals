@@ -730,7 +730,7 @@ class VolatilityEstimator(object):
         filename = self._symbol.upper() + '_termsheet_' + datetime.datetime.today().strftime("%Y%m%d") + '.pdf'
         
         # Create term-sheets directory if it doesn't exist
-        term_sheets_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'term-sheets'))
+        term_sheets_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'term-sheets'))
         os.makedirs(term_sheets_dir, exist_ok=True)
         
         # Use the correct path joining
