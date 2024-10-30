@@ -155,3 +155,6 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
+# Project Specific (Anything in volatility-trading that ends in a pdf or a png)
+volatility-trading/term-sheets/*.pdf
+volatility-trading/img/*.png
