@@ -1,0 +1,1644 @@
+{
+  "tag": "body",
+  "id": "",
+  "classes": [
+    "__variable_33e41a",
+    "__className_33e41a",
+    "h-full",
+    "overscroll-none",
+    "lg:overflow-x-hidden"
+  ],
+  "attributes": {
+    "class": "__variable_33e41a __className_33e41a h-full overscroll-none lg:overflow-x-hidden",
+    "data-uw-rm-skl": ""
+  },
+  "text": "Skip to main content\nEnable accessibility for low vision\nOpen the accessibility menu\nStock Advisor\n\n",
+  "children": [
+    {
+      "tag": "div",
+      "id": "",
+      "classes": [
+        "uw-sl"
+      ],
+      "attributes": {
+        "class": "uw-sl",
+        "role": "region",
+        "data-uw-rm-ignore": "true",
+        "data-uw-ignore-translate": "true",
+        "aria-label": "Quick Accessibility Options"
+      },
+      "text": "Skip to main content\nEnable accessibility for low vision\nOpen the accessibility menu",
+      "children": [
+        {
+          "tag": "button",
+          "id": "uw-skip-to-main",
+          "classes": [
+            "uw-sl__item"
+          ],
+          "attributes": {
+            "class": "uw-sl__item",
+            "data-uw-rm-ignore": "true",
+            "data-uw-ignore-translate": "true",
+            "lang": "en-US",
+            "id": "uw-skip-to-main",
+            "aria-label": "Skip to main content"
+          },
+          "text": "Skip to main content",
+          "children": [
+            {
+              "tag": "span",
+              "id": "",
+              "classes": [
+                "uw-sl__item__left"
+              ],
+              "attributes": {
+                "class": "uw-sl__item__left",
+                "data-uw-ignore-translate": "true"
+              },
+              "text": "Skip to main content",
+              "children": []
+            },
+            {
+              "tag": "span",
+              "id": "",
+              "classes": [
+                "uw-sl__e-icon"
+              ],
+              "attributes": {
+                "class": "uw-sl__e-icon"
+              },
+              "text": "",
+              "children": []
+            }
+          ]
+        },
+        {
+          "tag": "button",
+          "id": "uw-enable-visibility",
+          "classes": [
+            "uw-sl__item"
+          ],
+          "attributes": {
+            "class": "uw-sl__item",
+            "data-uw-rm-ignore": "true",
+            "data-uw-ignore-translate": "true",
+            "lang": "en-US",
+            "id": "uw-enable-visibility",
+            "aria-label": "Enable accessibility for low vision"
+          },
+          "text": "Enable accessibility for low vision",
+          "children": [
+            {
+              "tag": "span",
+              "id": "",
+              "classes": [
+                "uw-sl__item__left"
+              ],
+              "attributes": {
+                "class": "uw-sl__item__left",
+                "data-uw-ignore-translate": "true"
+              },
+              "text": "Enable accessibility for low vision",
+              "children": []
+            },
+            {
+              "tag": "span",
+              "id": "",
+              "classes": [
+                "uw-sl__e-icon"
+              ],
+              "attributes": {
+                "class": "uw-sl__e-icon"
+              },
+              "text": "",
+              "children": []
+            }
+          ]
+        },
+        {
+          "tag": "button",
+          "id": "uw-open-accessibility",
+          "classes": [
+            "uw-sl__item"
+          ],
+          "attributes": {
+            "class": "uw-sl__item",
+            "data-uw-rm-ignore": "true",
+            "data-uw-ignore-translate": "true",
+            "lang": "en-US",
+            "id": "uw-open-accessibility",
+            "aria-label": "Open the accessibility menu"
+          },
+          "text": "Open the accessibility menu",
+          "children": [
+            {
+              "tag": "span",
+              "id": "",
+              "classes": [
+                "uw-sl__item__left"
+              ],
+              "attributes": {
+                "class": "uw-sl__item__left",
+                "data-uw-ignore-translate": "true"
+              },
+              "text": "Open the accessibility menu",
+              "children": []
+            },
+            {
+              "tag": "span",
+              "id": "",
+              "classes": [
+                "uw-sl__e-icon"
+              ],
+              "attributes": {
+                "class": "uw-sl__e-icon"
+              },
+              "text": "",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "id": "",
+      "classes": [
+        "uwy",
+        "userway_p3"
+      ],
+      "attributes": {
+        "class": "uwy userway_p3",
+        "data-uw-feature-ignore": "true",
+        "data-uw-rm-ignore": "true",
+        "title": "Accessibility Menu",
+        "style": "background-color: transparent !important; overflow: initial !important;"
+      },
+      "text": "",
+      "children": [
+        {
+          "tag": "div",
+          "id": "",
+          "classes": [
+            "userway_buttons_wrapper"
+          ],
+          "attributes": {
+            "class": "userway_buttons_wrapper"
+          },
+          "text": "",
+          "children": [
+            {
+              "tag": "div",
+              "id": "userwayLstIcon",
+              "classes": [
+                "ulsti",
+                "hidden",
+                "userway_dark"
+              ],
+              "attributes": {
+                "class": "ulsti hidden userway_dark",
+                "id": "userwayLstIcon",
+                "aria-label": "Translations Menu",
+                "role": "button",
+                "tabindex": "0",
+                "aria-haspopup": "dialog",
+                "data-uw-s19-ignore": "",
+                "title": "Translations Menu",
+                "style": "background: rgb(7, 8, 102) !important;"
+              },
+              "text": "",
+              "children": []
+            },
+            {
+              "tag": "div",
+              "id": "userwayAccessibilityIcon",
+              "classes": [
+                "uai",
+                "userway_dark"
+              ],
+              "attributes": {
+                "class": "uai userway_dark",
+                "id": "userwayAccessibilityIcon",
+                "aria-label": "Accessibility Menu",
+                "role": "button",
+                "tabindex": "0",
+                "aria-haspopup": "dialog",
+                "title": "Accessibility Menu",
+                "style": "background: rgb(7, 8, 102) !important;"
+              },
+              "text": "",
+              "children": []
+            }
+          ]
+        },
+        {
+          "tag": "iframe",
+          "id": "",
+          "classes": [
+            "uwif",
+            "userway_p3"
+          ],
+          "attributes": {
+            "class": "uwif userway_p3",
+            "data-uw-ignore-translate": "true",
+            "name": "userway",
+            "title": "Accessibility Menu",
+            "style": "max-width: 100vw !important; visibility: visible !important; opacity: 1 !important; color-scheme: light !important;"
+          },
+          "text": "",
+          "children": []
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "id": "",
+      "classes": [
+        "uw-s10-bottom-ruler-guide"
+      ],
+      "attributes": {
+        "class": "uw-s10-bottom-ruler-guide"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "div",
+      "id": "",
+      "classes": [
+        "uw-s10-right-ruler-guide"
+      ],
+      "attributes": {
+        "class": "uw-s10-right-ruler-guide"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "div",
+      "id": "",
+      "classes": [
+        "uw-s10-left-ruler-guide"
+      ],
+      "attributes": {
+        "class": "uw-s10-left-ruler-guide"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "div",
+      "id": "",
+      "classes": [
+        "uw-s10-reading-guide"
+      ],
+      "attributes": {
+        "class": "uw-s10-reading-guide"
+      },
+      "text": "",
+      "children": [
+        {
+          "tag": "div",
+          "id": "",
+          "classes": [
+            "uw-s10-reading-guide__arrow"
+          ],
+          "attributes": {
+            "class": "uw-s10-reading-guide__arrow"
+          },
+          "text": "",
+          "children": []
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "id": "",
+      "classes": [
+        "uw-s12-tooltip"
+      ],
+      "attributes": {
+        "class": "uw-s12-tooltip",
+        "aria-hidden": "true"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "div",
+      "id": "",
+      "classes": [
+        "min-h-screen"
+      ],
+      "attributes": {
+        "class": "min-h-screen"
+      },
+      "text": "Stock Advisor\n\nAbout Stock Advisor\n\nHome\nNew Recs\nRankings\nMy Stocks\nCoverage\nMy Services\nToolkit\nGa",
+      "children": [
+        {
+          "tag": "div",
+          "id": "",
+          "classes": [
+            "hidden",
+            "xl:fixed",
+            "xl:inset-y-0",
+            "xl:z-50",
+            "xl:flex",
+            "xl:w-236px",
+            "xl:flex-col"
+          ],
+          "attributes": {
+            "class": "hidden xl:fixed xl:inset-y-0 xl:z-50 xl:flex xl:w-236px xl:flex-col "
+          },
+          "text": "Stock Advisor\n\nAbout Stock Advisor\n\nHome\nNew Recs\nRankings\nMy Stocks\nCoverage\nMy Services\nToolkit\nGa",
+          "children": [
+            {
+              "tag": "div",
+              "id": "",
+              "classes": [
+                "flex",
+                "flex-col",
+                "justify-start",
+                "py-24px",
+                "md:py-32px",
+                "h-screen",
+                "bg-content-100",
+                "relative"
+              ],
+              "attributes": {
+                "class": "flex flex-col justify-start py-24px md:py-32px h-screen bg-content-100 relative"
+              },
+              "text": "Stock Advisor\n\nAbout Stock Advisor\n\nHome\nNew Recs\nRankings\nMy Stocks\nCoverage\nMy Services\nToolkit\nGa",
+              "children": []
+            }
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "",
+          "classes": [
+            "xl:pl-236px"
+          ],
+          "attributes": {
+            "class": "xl:pl-236px"
+          },
+          "text": "Home\nDow\n43,988.99\n+0.59%\nS&P 500\n5,995.54\n+0.38%\nNasdaq\n19,286.78\n+0.09%\nBitcoin\n76,877.67\n+0.41%\nM",
+          "children": [
+            {
+              "tag": "div",
+              "id": "layout-sticky-header",
+              "classes": [
+                "sticky",
+                "top-0",
+                "z-40",
+                "border-b",
+                "md:border-none",
+                "border-content-8",
+                "bg-primary-0",
+                "md:shadow-sm",
+                "px-16px",
+                "md:px-6",
+                "lg:px-8",
+                "md:pt-4",
+                "py-4"
+              ],
+              "attributes": {
+                "id": "layout-sticky-header",
+                "class": " sticky top-0 z-40 border-b md:border-none border-content-8 bg-primary-0 md:shadow-sm px-16px md:px-6 lg:px-8 md:pt-4 py-4 "
+              },
+              "text": "Home",
+              "children": []
+            },
+            {
+              "tag": "div",
+              "id": "",
+              "classes": [],
+              "attributes": {},
+              "text": "Dow\n43,988.99\n+0.59%\nS&P 500\n5,995.54\n+0.38%\nNasdaq\n19,286.78\n+0.09%\nBitcoin\n76,877.67\n+0.41%",
+              "children": []
+            },
+            {
+              "tag": "main",
+              "id": "",
+              "classes": [],
+              "attributes": {},
+              "text": "My Stocks\nAll Stocks\nSymbol\n\t\nPrice\n\t\nChange\n\t\nChange %\nCOST\n\t\n$943.80\n\t\n$29.87\n\t\n+3.27%\n\n\nPGR\n\t\n$26",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "id": "",
+      "classes": [
+        "pointer-events-none",
+        "fixed",
+        "z-[100]",
+        "inset-0",
+        "flex",
+        "items-end",
+        "px-4",
+        "py-6",
+        "sm:items-start",
+        "sm:p-6"
+      ],
+      "attributes": {
+        "aria-live": "assertive",
+        "class": "pointer-events-none fixed z-[100] inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6"
+      },
+      "text": "",
+      "children": [
+        {
+          "tag": "div",
+          "id": "",
+          "classes": [
+            "flex",
+            "w-full",
+            "flex-col",
+            "items-center",
+            "space-y-4",
+            "sm:items-end"
+          ],
+          "attributes": {
+            "class": "flex w-full flex-col items-center space-y-4 sm:items-end"
+          },
+          "text": "",
+          "children": [
+            {
+              "tag": "div",
+              "id": "",
+              "classes": [
+                "w-full",
+                "md:max-w-sm",
+                "flex",
+                "justify-end",
+                "items-end",
+                "flex-col"
+              ],
+              "attributes": {
+                "class": "w-full md:max-w-sm flex justify-end items-end flex-col"
+              },
+              "text": "",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "footer",
+      "id": "",
+      "classes": [
+        "p-4",
+        "lg:p-6",
+        "bg-primary-4",
+        "text-content-70",
+        "text-caption-regular",
+        "text-center"
+      ],
+      "attributes": {
+        "class": "p-4 lg:p-6 bg-primary-4 text-content-70 text-caption-regular text-center"
+      },
+      "text": "Fool Disclosure\nPrivacy Policy\nAccessibility Policy\nCopyright, Trademark and Patent information\nTerm",
+      "children": [
+        {
+          "tag": "div",
+          "id": "",
+          "classes": [
+            "pl-0px",
+            "xl:pl-[236px]"
+          ],
+          "attributes": {
+            "class": "pl-0px xl:pl-[236px]"
+          },
+          "text": "Fool Disclosure\nPrivacy Policy\nAccessibility Policy\nCopyright, Trademark and Patent information\nTerm",
+          "children": [
+            {
+              "tag": "div",
+              "id": "",
+              "classes": [],
+              "attributes": {},
+              "text": "Fool Disclosure\nPrivacy Policy\nAccessibility Policy\nCopyright, Trademark and Patent information\nTerm",
+              "children": []
+            },
+            {
+              "tag": "div",
+              "id": "",
+              "classes": [
+                "py-2"
+              ],
+              "attributes": {
+                "class": "py-2"
+              },
+              "text": "\u00a9 1995 - 2024 The Motley Fool. All rights reserved.",
+              "children": []
+            },
+            {
+              "tag": "div",
+              "id": "",
+              "classes": [],
+              "attributes": {},
+              "text": "Market data provided by Xignite and Polygon.io. Terms & Conditions",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "src": "/premium/_next/static/chunks/webpack-f39b51f38c3273f8.js",
+        "async": ""
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {},
+      "text": "(self.__next_f=self.__next_f||[]).push([0]);self.__next_f.push([2,null])",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {},
+      "text": "self.__next_f.push([1,\"1:HL[\\\"/premium/_next/static/media/867bce6efedfde96-s.p.ttf\\\",\\\"font\\\",{\\\"cro",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {},
+      "text": "self.__next_f.push([1,\"5:I[89562,[],\\\"\\\"]\\n7:I[5685,[],\\\"ClientPageRoot\\\"]\\n8:I[68817,[\\\"5469\\\",\\\"st",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "data-uw-rm-sr": ""
+      },
+      "text": "self.__next_f.push([1,\"0:[null,[\\\"$\\\",\\\"$L5\\\",null,{\\\"buildId\\\":\\\"kr_2kCsZKkF46yd9cA334\\\",\\\"assetPre",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {},
+      "text": "self.__next_f.push([1,\"14:I[65469,[\\\"2044\\\",\\\"static/chunks/891cff7f-66951c402d573465.js\\\",\\\"5469\\\",",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "data-uw-rm-sr": ""
+      },
+      "text": "self.__next_f.push([1,\"10:[\\\"$\\\",\\\"html\\\",null,{\\\"lang\\\":\\\"en\\\",\\\"className\\\":\\\"h-full bg-primary-4 ",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {},
+      "text": "self.__next_f.push([1,\"15:I[59066,[\\\"2044\\\",\\\"static/chunks/891cff7f-66951c402d573465.js\\\",\\\"5469\\\",",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {},
+      "text": "self.__next_f.push([1,\"s/5816-0cffc7e7ed955331.js\\\",\\\"5852\\\",\\\"static/chunks/5852-0b720e9ddd49287e.j",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {},
+      "text": "self.__next_f.push([1,\"ic/chunks/3925-b18017282ff895cf.js\\\",\\\"4003\\\",\\\"static/chunks/4003-a35f03d0a7",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {},
+      "text": "self.__next_f.push([1,\"tatic/chunks/359-d52a65eea5264324.js\\\",\\\"6718\\\",\\\"static/chunks/6718-0b720e72",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {},
+      "text": "self.__next_f.push([1,\"\\\",\\\"static/chunks/6579-4a80a274d0179633.js\\\",\\\"3958\\\",\\\"static/chunks/3958-f",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {},
+      "text": "self.__next_f.push([1,\"],\\\"default\\\"]\\n23:I[63141,[\\\"2044\\\",\\\"static/chunks/891cff7f-66951c402d57346",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {},
+      "text": "self.__next_f.push([1,\"hunks/5816-0cffc7e7ed955331.js\\\",\\\"5852\\\",\\\"static/chunks/5852-0b720e9ddd4928",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {},
+      "text": "self.__next_f.push([1,\"c/chunks/3925-b18017282ff895cf.js\\\",\\\"4003\\\",\\\"static/chunks/4003-a35f03d0a73",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {},
+      "text": "self.__next_f.push([1,\"hunks/359-d52a65eea5264324.js\\\",\\\"6718\\\",\\\"static/chunks/6718-0b720e72531baa1",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {},
+      "text": "self.__next_f.push([1,\"/chunks/6579-4a80a274d0179633.js\\\",\\\"3958\\\",\\\"static/chunks/3958-f4a97df0d705",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {},
+      "text": "self.__next_f.push([1,\"hunks/3679-c2c74449f8a5240d.js\\\",\\\"4818\\\",\\\"static/chunks/4818-419da674a052cd",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {},
+      "text": "self.__next_f.push([1,\"/chunks/7279-da58fd9ed7047a43.js\\\",\\\"6385\\\",\\\"static/chunks/6385-ef1d9500559a",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {},
+      "text": "self.__next_f.push([1,\"91cff7f-66951c402d573465.js\\\",\\\"5469\\\",\\\"static/chunks/5469-bffd59e603bff9d2.",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {},
+      "text": "self.__next_f.push([1,\"hunks/5852-0b720e9ddd49287e.js\\\",\\\"5658\\\",\\\"static/chunks/5658-310c6eaee44c13",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "data-uw-rm-sr": ""
+      },
+      "text": "self.__next_f.push([1,\"c/chunks/4003-a35f03d0a733a463.js\\\",\\\"8238\\\",\\\"static/chunks/8238-cc43640a09c",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {},
+      "text": "self.__next_f.push([1,\"hbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IlEwWkNORFF4UkRaQlFUazJSRFk1T0RrNVFU",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "data-uw-rm-sr": ""
+      },
+      "text": "self.__next_f.push([1,\"WUyZDItNDE3ZS1hNjA2LWU1OTFlNzIwYjg4NSIsImlzcyI6Imh0dHBzOi8vYXV0aC5mb29sLmNvbS",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "data-uw-rm-sr": ""
+      },
+      "text": "self.__next_f.push([1,\"f:[\\\"$\\\",\\\"$L15\\\",null,{\\\"session\\\":{\\\"user\\\":{\\\"name\\\":\\\"Calvin Seamons\\\",\\\"",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {},
+      "text": "self.__next_f.push([1,\"33:I[23545,[\\\"5469\\\",\\\"static/chunks/5469-bffd59e603bff9d2.js\\\",\\\"3995\\\",\\\"st",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {},
+      "text": "self.__next_f.push([1,\"743042.js\\\",\\\"7279\\\",\\\"static/chunks/7279-da58fd9ed7047a43.js\\\",\\\"2140\\\",\\\"st",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "data-uw-rm-sr": ""
+      },
+      "text": "self.__next_f.push([1,\"6604\\\",\\\"static/chunks/6604-5bba80adf443c116.js\\\",\\\"8092\\\",\\\"static/chunks/80",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {},
+      "text": "self.__next_f.push([1,\"s\\\",\\\"goal\\\":\\\"\\\",\\\"vaulted\\\":null,\\\"arePositionsRanked\\\":true}},{\\\"__typenam",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {},
+      "text": "self.__next_f.push([1,\"37:I[50427,[\\\"2044\\\",\\\"static/chunks/891cff7f-66951c402d573465.js\\\",\\\"5469\\\",",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "data-uw-rm-sr": ""
+      },
+      "text": "self.__next_f.push([1,\"1d:[\\\"$\\\",\\\"$L37\\\",null,{\\\"userData\\\":{\\\"__typename\\\":\\\"User\\\",\\\"uid\\\":\\\"2065",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "defer": "",
+        "src": "https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015",
+        "integrity": "sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==",
+        "data-cf-beacon": "{\"rayId\":\"8e0198e4ca206a05\",\"version\":\"2024.10.5\",\"serverTiming\":{\"name\":{\"cfExtPri\":true,\"cfL4\":true,\"cfSpeedBrain\":true,\"cfCacheStatus\":true}},\"token\":\"e081e875f70442d4bdc4b24dde150ec9\",\"b\":1}",
+        "crossorigin": "anonymous"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "src": "https://cdn.cookielaw.org/consent/02abb198-81a8-49e5-a9b1-f69a5dd9c039/OtAutoBlock.js",
+        "data-nscript": "afterInteractive"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "src": "https://cdn.cookielaw.org/scripttemplates/otSDKStub.js",
+        "data-domain-script": "02abb198-81a8-49e5-a9b1-f69a5dd9c039",
+        "data-nscript": "afterInteractive"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "src": "https://accessibilityserver.org/widget.js",
+        "data-account": "JPpJAc3inv",
+        "defer": "true",
+        "data-nscript": "afterInteractive"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "next-route-announcer",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "style": "position: absolute;"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "src": "https://g.foolcdn.com/mms/resources/js/fool_mad_v1.min.js",
+        "data-nscript": "afterInteractive"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "a11yWidgetSrc",
+      "classes": [],
+      "attributes": {
+        "src": "https://cdn.userway.org/widgetapp/2024-11-01-10-09-24/widget_app_base_1730455764190.js",
+        "async": "",
+        "id": "a11yWidgetSrc",
+        "crossorigin": "anonymous",
+        "integrity": "sha256-g9il4bXjmrZlvgjBu9mQOQ9hx9j2VJ+xj21/OOsXTrY="
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "iframe",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "name": "us-entrypoint-globalSetup",
+        "title": "Usersnap Feedback",
+        "style": "display: none; height: 0px; width: 0px; z-index: 2147483647; color-scheme: normal;"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "div",
+      "id": "onetrust-consent-sdk",
+      "classes": [],
+      "attributes": {
+        "id": "onetrust-consent-sdk",
+        "data-nosnippet": "true"
+      },
+      "text": "",
+      "children": [
+        {
+          "tag": "div",
+          "id": "",
+          "classes": [
+            "onetrust-pc-dark-filter",
+            "ot-hide",
+            "ot-fade-in"
+          ],
+          "attributes": {
+            "class": "onetrust-pc-dark-filter ot-hide ot-fade-in"
+          },
+          "text": "",
+          "children": []
+        },
+        {
+          "tag": "div",
+          "id": "onetrust-banner-sdk",
+          "classes": [
+            "otFloatingRoundedCorner",
+            "otRelFont",
+            "ot-bottom-right",
+            "ot-wo-title",
+            "vertical-align-content"
+          ],
+          "attributes": {
+            "id": "onetrust-banner-sdk",
+            "class": "otFloatingRoundedCorner otRelFont ot-bottom-right ot-wo-title vertical-align-content",
+            "role": "region",
+            "aria-label": "Cookie banner",
+            "style": "display: none;\n                    transition: visibility 0s 400ms, opacity 400ms linear;\n                    opacity: 0;visibility: hidden;"
+          },
+          "text": "This website uses cookies to deliver our services and to analyze traffic. We also share information ",
+          "children": [
+            {
+              "tag": "div",
+              "id": "",
+              "classes": [
+                "ot-sdk-container"
+              ],
+              "attributes": {
+                "class": "ot-sdk-container",
+                "role": "dialog",
+                "aria-label": "Privacy"
+              },
+              "text": "This website uses cookies to deliver our services and to analyze traffic. We also share information ",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "us-button",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "style": "user-select: all;"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "crossorigin": "anonymous",
+        "integrity": "sha256-cRwqQdKwIt+LUJAu4INv16bt/lIF1AQNPT5vb+HoXTE=",
+        "src": "https://cdn.userway.org/widgetapp/2024-11-01-10-09-24/remediation/remediation_1730455764190.js"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "crossorigin": "anonymous",
+        "integrity": "sha256-Xdr2Al2DMBVPwuyq+jLcjC447Q48lJ29mENqCuSMrdg=",
+        "src": "https://cdn.userway.org/remediation/2024-11-01-10-09-24/paid/remediation-tool.js?ts=1730455764190"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "type": "text/javascript",
+        "id": "",
+        "charset": ""
+      },
+      "text": "/(^|;)\\s*campaign=/.test(document.cookie)?console.log(\"Not 1st MKT PV\"):(document.cookie=\"campaign\\x",
+      "children": []
+    },
+    {
+      "tag": "img",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "src": "\u201chttps://rp.liadm.com/p?aid=a-0264&duid=[FIRST_PARTY_COOKIE]&li_t=conversion&li_n=product_purchase&e=[USER_EMAIL]&li_tid=[CONVERSION_ID]&li_tp=[PURCHASE_AMOUNT]&li_tc=[CURRENCY_TYPE]&li_tims=%5B%7B%22id%22%3A%22%5BPRODUCT_ID%5D%22%2C%22p%22%3A%22%5BITEM_PRICE%5D%22%2C%22q%22%3A%22%5BQUANTITY%5D%22%2C%22c%22%3A%22%5BCURRENCY_TYPE%5D%22%7D%5D\u201d"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "id": "",
+        "text": "",
+        "charset": "",
+        "type": "text/javascript",
+        "src": "https://cdn1.decide.dev/tracking/themotleyfool_lander.js"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "id": "",
+        "text": "",
+        "charset": "utf-8",
+        "type": "text/javascript",
+        "src": "//b-code.liadm.com/a-0264.min.js"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "type": "text/javascript",
+        "id": "",
+        "charset": ""
+      },
+      "text": "(function(g,e,a,f,b,c,d){b.ire_o=a;b[a]=b[a]||function(){(b[a].a=b[a].a||[]).push(arguments)};c=f.cr",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "type": "text/javascript",
+        "id": "",
+        "charset": ""
+      },
+      "text": "!function(a,b){var e=\"00e9ce2f1c669946a79bfac548f4eebd1a\";if(a.obApi)b=function(d){return\"[object Ar",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "comscore_init_script_1341819423",
+      "classes": [],
+      "attributes": {
+        "type": "text/javascript",
+        "id": "comscore_init_script_1341819423",
+        "charset": ""
+      },
+      "text": "var _comscore=_comscore||[];_comscore.push({c1:\"2\",c2:\"17054958\"});(function(){var a=document.create",
+      "children": []
+    },
+    {
+      "tag": "noscript",
+      "id": "",
+      "classes": [],
+      "attributes": {},
+      "text": "\n  <img src=\"//b.scorecardresearch.com/p?c1=2&amp;c2=17054958&amp;cv=2.0&amp;cj=1\">\n",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "type": "text/javascript",
+        "id": "",
+        "charset": ""
+      },
+      "text": "!function(b,e,f,g,a,c,d){b.fbq||(a=b.fbq=function(){a.callMethod?a.callMethod.apply(a,arguments):a.q",
+      "children": []
+    },
+    {
+      "tag": "noscript",
+      "id": "",
+      "classes": [],
+      "attributes": {},
+      "text": "<img height=\"1\" width=\"1\" style=\"display:none\" src=\"https://www.facebook.com/tr?id=1561515534098628&",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "type": "text/javascript",
+        "id": "",
+        "charset": ""
+      },
+      "text": "(function(c,d,f,g,e){c[e]=c[e]||[];var h=function(){var b={ti:\"5151830\"};b.q=c[e];c[e]=new UET(b);c[",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "type": "text/javascript",
+        "id": "",
+        "charset": ""
+      },
+      "text": "var _qevents=_qevents||[];(function(){var a=document.createElement(\"script\");a.src=(\"https:\"==docume",
+      "children": []
+    },
+    {
+      "tag": "noscript",
+      "id": "",
+      "classes": [],
+      "attributes": {},
+      "text": "\n <img src=\"//pixel.quantserve.com/pixel/p-p4jUuewM-vyu5.gif?labels=_fp.event.Default\" style=\"displa",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "type": "text/javascript",
+        "id": "",
+        "charset": ""
+      },
+      "text": "!function(d,e,f,a,b,c){d.qp||(a=d.qp=function(){a.qp?a.qp.apply(a,arguments):a.queue.push(arguments)",
+      "children": []
+    },
+    {
+      "tag": "noscript",
+      "id": "",
+      "classes": [],
+      "attributes": {},
+      "text": "<img height=\"1\" width=\"1\" style=\"display:none\" src=\"https://q.quora.com/_/ad/e2f4cee7b1d3457da6cceb1",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "type": "text/javascript",
+        "id": "",
+        "charset": ""
+      },
+      "text": "qp(\"track\",\"Generic\");",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "type": "text/javascript",
+        "id": "",
+        "charset": ""
+      },
+      "text": "!function(a,b){if(!a.rdt){var c=a.rdt=function(){c.sendEvent?c.sendEvent.apply(c,arguments):c.callQu",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [
+        "optanon-category-C0002-C0004"
+      ],
+      "attributes": {
+        "id": "",
+        "text": "",
+        "charset": "",
+        "type": "text/javascript",
+        "src": "https://www.googletagmanager.com/gtag/js?id=AW-760307589",
+        "class": "optanon-category-C0002-C0004 "
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "type": "text/javascript",
+        "id": "",
+        "charset": ""
+      },
+      "text": "!function(b,e,f,g,a,c,d){b.fbq||(a=b.fbq=function(){a.callMethod?a.callMethod.apply(a,arguments):a.q",
+      "children": []
+    },
+    {
+      "tag": "noscript",
+      "id": "",
+      "classes": [],
+      "attributes": {},
+      "text": "<img height=\"1\" width=\"1\" style=\"display:none\" src=\"https://www.facebook.com/tr?id=3555002921226223&",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "type": "text/javascript",
+        "id": "",
+        "charset": ""
+      },
+      "text": "!function(d,g,e){d.TiktokAnalyticsObject=e;var a=d[e]=d[e]||[];a.methods=\"page track identify instan",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [
+        "optanon-category-C0002-C0004"
+      ],
+      "attributes": {
+        "id": "",
+        "text": "",
+        "charset": "",
+        "type": "text/javascript",
+        "src": "https://www.googletagmanager.com/gtag/js?id=AW-803720290",
+        "class": "optanon-category-C0002-C0004 "
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "id": "",
+        "text": "",
+        "charset": "",
+        "type": "text/javascript",
+        "src": "https://cdn.p-n.io/pushly-sdk.min.js?domain_key=qMLf3lo538Yr6Jc3W0SExV9PBkEcTwnlHu8F"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "type": "text/javascript",
+        "id": "",
+        "charset": ""
+      },
+      "text": "window.jeeng_attribution=window.jeeng_attribution||[];(function(){var a=document.createElement(\"scri",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "type": "text/javascript",
+        "id": "",
+        "charset": ""
+      },
+      "text": "!function(){var a=window.tdl=window.tdl||[];if(a.invoked)window.console&&console.error&&console.erro",
+      "children": []
+    },
+    {
+      "tag": "iframe",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "height": "0",
+        "width": "0",
+        "src": "https://14756892.fls.doubleclick.net/activityi;src=14756892;type=counter;cat=motle0;ord=8426111188750;npa=0;auiddc=2087013178.1731195098;u1=https%3A%2F%2Fwww.fool.com%2Fpremium;u2=undefined;gdid=dYWJhMj;ps=1;pcor=808263247;uaa=x64;uab=64;uafvl=Not%253FA_Brand%3B99.0.0.0%7CChromium%3B130.0.6723.31;uamb=0;uam=;uap=Windows;uapv=10.0;uaw=0;pscdl=noapi;frm=0;gtm=45fe4b70v9192305618z86122374za201zb6122374;gcd=13l3l3l3l1l1;dma=0;tag_exp=101823848~101925629;epver=2;~oref=https%3A%2F%2Fwww.fool.com%2Fpremium?",
+        "style": "display: none; visibility: hidden;",
+        "title": "14756892-fls-doubleclick",
+        "data-uw-rm-iframe": "gn"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "iframe",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "allow": "join-ad-interest-group",
+        "data-tagging-id": "DC-14756892/counter/motle0+standard",
+        "data-load-time": "1731195098165",
+        "height": "0",
+        "width": "0",
+        "src": "https://td.doubleclick.net/td/fls/rul/activityi;fledge=1;src=14756892;type=counter;cat=motle0;ord=8426111188750;npa=0;auiddc=2087013178.1731195098;u1=https%3A%2F%2Fwww.fool.com%2Fpremium;u2=undefined;gdid=dYWJhMj;ps=1;pcor=808263247;uaa=x64;uab=64;uafvl=Not%253FA_Brand%3B99.0.0.0%7CChromium%3B130.0.6723.31;uamb=0;uam=;uap=Windows;uapv=10.0;uaw=0;pscdl=noapi;frm=0;gtm=45fe4b70v9192305618z86122374za201zb6122374;gcd=13l3l3l3l1l1;dma=0;tag_exp=101823848~101925629;epver=2;~oref=https%3A%2F%2Fwww.fool.com%2Fpremium?",
+        "style": "display: none; visibility: hidden;",
+        "title": "td-doubleclick",
+        "data-uw-rm-iframe": "gn"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "iframe",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "height": "0",
+        "width": "0",
+        "src": "https://14756892.fls.doubleclick.net/activityi;src=14756892;type=landing;cat=motle0;ord=1;num=9781306328793;npa=0;auiddc=2087013178.1731195098;u1=https%3A%2F%2Fwww.fool.com%2Fpremium;gdid=dYWJhMj;ps=1;pcor=1629350744;uaa=x64;uab=64;uafvl=Not%253FA_Brand%3B99.0.0.0%7CChromium%3B130.0.6723.31;uamb=0;uam=;uap=Windows;uapv=10.0;uaw=0;pscdl=noapi;frm=0;gtm=45fe4b70v9192305618z86122374za201zb6122374;gcd=13l3l3l3l1l1;dma=0;tag_exp=101823848~101925629;epver=2;~oref=https%3A%2F%2Fwww.fool.com%2Fpremium?",
+        "style": "display: none; visibility: hidden;",
+        "title": "14756892-fls-doubleclick",
+        "data-uw-rm-iframe": "gn"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "iframe",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "allow": "join-ad-interest-group",
+        "data-tagging-id": "DC-14756892/landing/motle0+unique",
+        "data-load-time": "1731195098171",
+        "height": "0",
+        "width": "0",
+        "src": "https://td.doubleclick.net/td/fls/rul/activityi;fledge=1;src=14756892;type=landing;cat=motle0;ord=1;num=9781306328793;npa=0;auiddc=2087013178.1731195098;u1=https%3A%2F%2Fwww.fool.com%2Fpremium;gdid=dYWJhMj;ps=1;pcor=1629350744;uaa=x64;uab=64;uafvl=Not%253FA_Brand%3B99.0.0.0%7CChromium%3B130.0.6723.31;uamb=0;uam=;uap=Windows;uapv=10.0;uaw=0;pscdl=noapi;frm=0;gtm=45fe4b70v9192305618z86122374za201zb6122374;gcd=13l3l3l3l1l1;dma=0;tag_exp=101823848~101925629;epver=2;~oref=https%3A%2F%2Fwww.fool.com%2Fpremium?",
+        "style": "display: none; visibility: hidden;",
+        "title": "td-doubleclick",
+        "data-uw-rm-iframe": "gn"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "type": "text/javascript",
+        "id": "",
+        "charset": ""
+      },
+      "text": "\"function\"==typeof analytics&&analytics.ready(function(){\"function\"==typeof ga&&(ga(\"require\",\"linke",
+      "children": []
+    },
+    {
+      "tag": "iframe",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "height": "0",
+        "width": "0",
+        "aria-hidden": "true",
+        "alt": "",
+        "style": "pointer-events: none; height: 0px; width: 0px; position: absolute; padding: 0px; margin: 0px; border: 0px; visibility: hidden;",
+        "data-uw-rm-iframe": "un"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "iframe",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "allow": "join-ad-interest-group",
+        "data-tagging-id": "G-B6G4KMLCV0",
+        "data-load-time": "1731195098291",
+        "height": "0",
+        "width": "0",
+        "src": "https://td.doubleclick.net/td/ga/rul?tid=G-B6G4KMLCV0&gacid=900035154.1731195087&gtm=45je4b70v868895564z86122374za200zb6122374&dma=0&gcd=13l3l3l3l1l1&npa=0&pscdl=noapi&aip=1&fledge=1&frm=0&tag_exp=101823848~101925629&z=777550733",
+        "style": "display: none; visibility: hidden;",
+        "title": "td-doubleclick",
+        "data-uw-rm-iframe": "gn"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "src": "https://fast.ssqt.io/squatch-js@2",
+        "async": ""
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "iframe",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "allow": "join-ad-interest-group",
+        "data-tagging-id": "AW-760307589",
+        "data-load-time": "1731195098367",
+        "height": "0",
+        "width": "0",
+        "src": "https://td.doubleclick.net/td/rul/760307589?random=1731195098344&cv=11&fst=1731195098344&fmt=3&bg=ffffff&guid=ON&async=1&gtm=45be4b70v877903725za200&gcd=13l3l3l3l1l1&dma=0&tag_exp=101823848~101925629&u_w=1920&u_h=1080&url=https%3A%2F%2Fwww.fool.com%2Fpremium&hn=www.googleadservices.com&frm=0&tiba=Home%20%7C%20Stock%20Advisor%20%7C%20The%20Motley%20Fool&did=dYWJhMj&gdid=dYWJhMj&npa=0&pscdl=noapi&auid=2087013178.1731195098&uaa=x64&uab=64&uafvl=Not%253FA_Brand%3B99.0.0.0%7CChromium%3B130.0.6723.31&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&fledge=1&data=event%3Dgtag.config",
+        "style": "display: none; visibility: hidden;",
+        "title": "td-doubleclick",
+        "data-uw-rm-iframe": "gn"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "type": "text/javascript",
+        "id": "",
+        "charset": ""
+      },
+      "text": "window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag(\"js\",new Date);",
+      "children": []
+    },
+    {
+      "tag": "iframe",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "allow": "join-ad-interest-group",
+        "data-tagging-id": "AW-803720290",
+        "data-load-time": "1731195098401",
+        "height": "0",
+        "width": "0",
+        "src": "https://td.doubleclick.net/td/rul/803720290?random=1731195098391&cv=11&fst=1731195098391&fmt=3&bg=ffffff&guid=ON&async=1&gtm=45be4b70v9105028976za200&gcd=13l3l3l3l1l1&dma=0&tag_exp=101823848~101925629&u_w=1920&u_h=1080&url=https%3A%2F%2Fwww.fool.com%2Fpremium&hn=www.googleadservices.com&frm=0&tiba=Home%20%7C%20Stock%20Advisor%20%7C%20The%20Motley%20Fool&did=dYWJhMj&gdid=dYWJhMj&npa=0&pscdl=noapi&auid=2087013178.1731195098&uaa=x64&uab=64&uafvl=Not%253FA_Brand%3B99.0.0.0%7CChromium%3B130.0.6723.31&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&fledge=1&data=event%3Dgtag.config",
+        "style": "display: none; visibility: hidden;",
+        "title": "td-doubleclick",
+        "data-uw-rm-iframe": "gn"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "type": "text/javascript",
+        "id": "",
+        "charset": ""
+      },
+      "text": "window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag(\"js\",new Date);",
+      "children": []
+    },
+    {
+      "tag": "iframe",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "height": "0",
+        "width": "0",
+        "style": "display: none; visibility: hidden;",
+        "data-uw-rm-iframe": "un"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "src": "//tr.outbrain.com/cachedClickId?marketerId=00e9ce2f1c669946a79bfac548f4eebd1a"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "type": "text/javascript",
+        "id": "",
+        "charset": ""
+      },
+      "text": "window.PushlySDK=window.PushlySDK||[];function pushly(){window.PushlySDK.push(arguments)}pushly(\"loa",
+      "children": []
+    },
+    {
+      "tag": "canvas",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "width": "200",
+        "height": "40",
+        "style": "position: absolute; display: none;"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "src": "https://analytics.fatmedia.io/ctl?nr=6645fd48bda8c089e21a9f60&cls=generic&referer=&location=https%3A%2F%2Fwww.fool.com%2Fpremium&sw=1920&sh=1080&fpc=-1545329995&sch=true&tch=false&dpi=96&plg=PDF%20Viewer%20Chrome%20PDF%20Viewer%20Chromium%20PDF%20Viewer%20Microsoft%20Edge%20PDF%20Viewer%20WebKit%20built-in%20PDF%20&psk=31783535463"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "div",
+      "id": "batBeacon127664650152",
+      "classes": [],
+      "attributes": {
+        "id": "batBeacon127664650152",
+        "style": "width: 0px; height: 0px; display: none; visibility: hidden;"
+      },
+      "text": "",
+      "children": [
+        {
+          "tag": "img",
+          "id": "batBeacon137305154175",
+          "classes": [],
+          "attributes": {
+            "id": "batBeacon137305154175",
+            "width": "0",
+            "height": "0",
+            "alt": "",
+            "src": "https://bat.bing.com/action/0?ti=5151830&Ver=2&mid=ad7657cb-867e-4f1b-baab-45b995a6ed68&bo=1&sid=c473b1909ef211efbc71edee65d63a2e&vid=c473d1909ef211ef8acd73f630167761&vids=1&msclkid=N&uach=pv%3D10.0&pi=918639831&lg=en-US&sw=1920&sh=1080&sc=24&nwd=1&tl=Home%20%7C%20Stock%20Advisor%20%7C%20The%20Motley%20Fool&p=https%3A%2F%2Fwww.fool.com%2Fpremium&r=&lt=2013&evt=pageLoad&sv=1&cdb=AQET&rn=535358",
+            "style": "width: 0px; height: 0px; display: none; visibility: hidden;"
+          },
+          "text": "",
+          "children": []
+        }
+      ]
+    },
+    {
+      "tag": "iframe",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "allow": "join-ad-interest-group",
+        "data-tagging-id": "AW-760307589",
+        "data-load-time": "1731195100437",
+        "height": "0",
+        "width": "0",
+        "src": "https://td.doubleclick.net/td/rul/760307589?random=1731195100428&cv=11&fst=1731195100428&fmt=3&bg=ffffff&guid=ON&async=1&gtm=45be4b70v877903725za200&gcd=13l3l3l3l1l1&dma=0&tag_exp=101823848~101925629&u_w=1920&u_h=1080&url=https%3A%2F%2Fwww.fool.com%2Fpremium&hn=www.googleadservices.com&frm=0&tiba=Home%20%7C%20Stock%20Advisor%20%7C%20The%20Motley%20Fool&did=dYWJhMj&gdid=dYWJhMj&npa=0&pscdl=noapi&auid=2087013178.1731195098&uaa=x64&uab=64&uafvl=Not%253FA_Brand%3B99.0.0.0%7CChromium%3B130.0.6723.31&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&fledge=1&data=event%3DtrackOptanonEvent%3BoptanonCategory%3DOneTrust%20Cookie%20Consent%3BoptanonAction%3DBanner%20Accept%20Cookies",
+        "style": "display: none; visibility: hidden;",
+        "title": "td-doubleclick",
+        "data-uw-rm-iframe": "gn"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "iframe",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "allow": "join-ad-interest-group",
+        "data-tagging-id": "AW-803720290",
+        "data-load-time": "1731195100443",
+        "height": "0",
+        "width": "0",
+        "src": "https://td.doubleclick.net/td/rul/803720290?random=1731195100440&cv=11&fst=1731195100440&fmt=3&bg=ffffff&guid=ON&async=1&gtm=45be4b70v9105028976za200&gcd=13l3l3l3l1l1&dma=0&tag_exp=101823848~101925629&u_w=1920&u_h=1080&url=https%3A%2F%2Fwww.fool.com%2Fpremium&hn=www.googleadservices.com&frm=0&tiba=Home%20%7C%20Stock%20Advisor%20%7C%20The%20Motley%20Fool&did=dYWJhMj&gdid=dYWJhMj&npa=0&pscdl=noapi&auid=2087013178.1731195098&uaa=x64&uab=64&uafvl=Not%253FA_Brand%3B99.0.0.0%7CChromium%3B130.0.6723.31&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&fledge=1&data=event%3DtrackOptanonEvent%3BoptanonCategory%3DOneTrust%20Cookie%20Consent%3BoptanonAction%3DBanner%20Accept%20Cookies",
+        "style": "display: none; visibility: hidden;",
+        "title": "td-doubleclick",
+        "data-uw-rm-iframe": "gn"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "img",
+      "id": "",
+      "classes": [
+        "optanon-category-C0004"
+      ],
+      "attributes": {
+        "src": "https://www.ojrq.net/p/?return=&cid=12584&tpsync=no&auth=",
+        "height": "0",
+        "width": "0",
+        "aria-hidden": "true",
+        "alt": "",
+        "style": "pointer-events: none; height: 0px; width: 0px; position: absolute; padding: 0px; margin: 0px; border: 0px; visibility: hidden;",
+        "class": "optanon-category-C0004 "
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "src": "https://cdn.userway.org/remediations/per_site/892134/A3r95y88KxHtlAwO.js"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "crossorigin": "anonymous",
+        "integrity": "sha256-SO73/mGj4sfIisHGomO9hRtqBTY2B+Uv0r5ORHLUIlU=",
+        "src": "https://cdn.userway.org/widgetapp/2024-11-01-10-09-24/remediation/nav_menu_helper_1730455764190.js"
+      },
+      "text": "",
+      "children": []
+    }
+  ]
+}
