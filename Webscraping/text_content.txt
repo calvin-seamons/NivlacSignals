@@ -28,8 +28,8 @@ Nasdaq
 19,286.78
 +0.09%
 Bitcoin
-76,877.67
-+0.41%
+76,626.86
++0.19%
 My Stocks
 All Stocks
 Symbol
@@ -489,3 +489,6 @@ Do Not Sell My Personal Information
 Terms of Use
 © 1995 - 2024 The Motley Fool. All rights reserved.
 Market data provided by Xignite and Polygon.io. Terms & Conditions
+This website uses cookies to deliver our services and to analyze traffic. We also share information about your use of our site with advertising and other partners. Privacy Policy
+Got it
+Cookie Settings

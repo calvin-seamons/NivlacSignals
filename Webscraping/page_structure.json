@@ -9,8 +9,7 @@
     "lg:overflow-x-hidden"
   ],
   "attributes": {
-    "class": "__variable_33e41a __className_33e41a h-full overscroll-none lg:overflow-x-hidden",
-    "data-uw-rm-skl": ""
+    "class": "__variable_33e41a __className_33e41a h-full overscroll-none lg:overflow-x-hidden"
   },
   "text": "Skip to main content\nEnable accessibility for low vision\nOpen the accessibility menu\nStock Advisor\n\n",
   "children": [
@@ -382,7 +381,7 @@
           "attributes": {
             "class": "xl:pl-236px"
           },
-          "text": "Home\nDow\n43,988.99\n+0.59%\nS&P 500\n5,995.54\n+0.38%\nNasdaq\n19,286.78\n+0.09%\nBitcoin\n76,877.67\n+0.41%\nM",
+          "text": "Home\nDow\n43,988.99\n+0.59%\nS&P 500\n5,995.54\n+0.38%\nNasdaq\n19,286.78\n+0.09%\nBitcoin\n76,626.86\n+0.19%\nM",
           "children": [
             {
               "tag": "div",
@@ -414,7 +413,7 @@
               "id": "",
               "classes": [],
               "attributes": {},
-              "text": "Dow\n43,988.99\n+0.59%\nS&P 500\n5,995.54\n+0.38%\nNasdaq\n19,286.78\n+0.09%\nBitcoin\n76,877.67\n+0.41%",
+              "text": "Dow\n43,988.99\n+0.59%\nS&P 500\n5,995.54\n+0.38%\nNasdaq\n19,286.78\n+0.09%\nBitcoin\n76,626.86\n+0.19%",
               "children": []
             },
             {
@@ -586,9 +585,7 @@
       "tag": "script",
       "id": "",
       "classes": [],
-      "attributes": {
-        "data-uw-rm-sr": ""
-      },
+      "attributes": {},
       "text": "self.__next_f.push([1,\"0:[null,[\\\"$\\\",\\\"$L5\\\",null,{\\\"buildId\\\":\\\"kr_2kCsZKkF46yd9cA334\\\",\\\"assetPre",
       "children": []
     },
@@ -604,9 +601,7 @@
       "tag": "script",
       "id": "",
       "classes": [],
-      "attributes": {
-        "data-uw-rm-sr": ""
-      },
+      "attributes": {},
       "text": "self.__next_f.push([1,\"10:[\\\"$\\\",\\\"html\\\",null,{\\\"lang\\\":\\\"en\\\",\\\"className\\\":\\\"h-full bg-primary-4 ",
       "children": []
     },
@@ -726,9 +721,7 @@
       "tag": "script",
       "id": "",
       "classes": [],
-      "attributes": {
-        "data-uw-rm-sr": ""
-      },
+      "attributes": {},
       "text": "self.__next_f.push([1,\"c/chunks/4003-a35f03d0a733a463.js\\\",\\\"8238\\\",\\\"static/chunks/8238-cc43640a09c",
       "children": []
     },
@@ -737,27 +730,31 @@
       "id": "",
       "classes": [],
       "attributes": {},
-      "text": "self.__next_f.push([1,\"hbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IlEwWkNORFF4UkRaQlFUazJSRFk1T0RrNVFU",
+      "text": "self.__next_f.push([1,\"bGV2ZWwiOjEsImh0dHBzOi8vd3d3LmZvb2wuY29tL3VpZCI6MjA2NTkxMDgwNCwiaHR0cHM6Ly93d",
       "children": []
     },
     {
       "tag": "script",
       "id": "",
       "classes": [],
-      "attributes": {
-        "data-uw-rm-sr": ""
-      },
-      "text": "self.__next_f.push([1,\"WUyZDItNDE3ZS1hNjA2LWU1OTFlNzIwYjg4NSIsImlzcyI6Imh0dHBzOi8vYXV0aC5mb29sLmNvbS",
+      "attributes": {},
+      "text": "self.__next_f.push([1,\"JjNCiCEvqEotEjQy6KIsR0FwyKmodJP3mjaC9zebKa1W428ODDl9Ol_Zig3pybDQlc6ja9ImixR2d",
       "children": []
     },
     {
       "tag": "script",
       "id": "",
       "classes": [],
-      "attributes": {
-        "data-uw-rm-sr": ""
-      },
+      "attributes": {},
       "text": "self.__next_f.push([1,\"f:[\\\"$\\\",\\\"$L15\\\",null,{\\\"session\\\":{\\\"user\\\":{\\\"name\\\":\\\"Calvin Seamons\\\",\\\"",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {},
+      "text": "self.__next_f.push([1,\"11:[[\\\"$\\\",\\\"meta\\\",\\\"0\\\",{\\\"name\\\":\\\"viewport\\\",\\\"content\\\":\\\"width=device-w",
       "children": []
     },
     {
@@ -780,9 +777,7 @@
       "tag": "script",
       "id": "",
       "classes": [],
-      "attributes": {
-        "data-uw-rm-sr": ""
-      },
+      "attributes": {},
       "text": "self.__next_f.push([1,\"6604\\\",\\\"static/chunks/6604-5bba80adf443c116.js\\\",\\\"8092\\\",\\\"static/chunks/80",
       "children": []
     },
@@ -806,9 +801,7 @@
       "tag": "script",
       "id": "",
       "classes": [],
-      "attributes": {
-        "data-uw-rm-sr": ""
-      },
+      "attributes": {},
       "text": "self.__next_f.push([1,\"1d:[\\\"$\\\",\\\"$L37\\\",null,{\\\"userData\\\":{\\\"__typename\\\":\\\"User\\\",\\\"uid\\\":\\\"2065",
       "children": []
     },
@@ -820,7 +813,7 @@
         "defer": "",
         "src": "https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015",
         "integrity": "sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==",
-        "data-cf-beacon": "{\"rayId\":\"8e0198e4ca206a05\",\"version\":\"2024.10.5\",\"serverTiming\":{\"name\":{\"cfExtPri\":true,\"cfL4\":true,\"cfSpeedBrain\":true,\"cfCacheStatus\":true}},\"token\":\"e081e875f70442d4bdc4b24dde150ec9\",\"b\":1}",
+        "data-cf-beacon": "{\"rayId\":\"8e01cee36e7627d8\",\"version\":\"2024.10.5\",\"serverTiming\":{\"name\":{\"cfExtPri\":true,\"cfL4\":true,\"cfSpeedBrain\":true,\"cfCacheStatus\":true}},\"token\":\"e081e875f70442d4bdc4b24dde150ec9\",\"b\":1}",
         "crossorigin": "anonymous"
       },
       "text": "",
@@ -917,7 +910,7 @@
         "id": "onetrust-consent-sdk",
         "data-nosnippet": "true"
       },
-      "text": "",
+      "text": "This website uses cookies to deliver our services and to analyze traffic. We also share information ",
       "children": [
         {
           "tag": "div",
@@ -947,8 +940,7 @@
             "id": "onetrust-banner-sdk",
             "class": "otFloatingRoundedCorner otRelFont ot-bottom-right ot-wo-title vertical-align-content",
             "role": "region",
-            "aria-label": "Cookie banner",
-            "style": "display: none;\n                    transition: visibility 0s 400ms, opacity 400ms linear;\n                    opacity: 0;visibility: hidden;"
+            "aria-label": "Cookie banner"
           },
           "text": "This website uses cookies to deliver our services and to analyze traffic. We also share information ",
           "children": [
@@ -1080,11 +1072,11 @@
     },
     {
       "tag": "script",
-      "id": "comscore_init_script_1341819423",
+      "id": "comscore_init_script_919968225",
       "classes": [],
       "attributes": {
         "type": "text/javascript",
-        "id": "comscore_init_script_1341819423",
+        "id": "comscore_init_script_919968225",
         "charset": ""
       },
       "text": "var _comscore=_comscore||[];_comscore.push({c1:\"2\",c2:\"17054958\"});(function(){var a=document.create",
@@ -1299,72 +1291,6 @@
       "children": []
     },
     {
-      "tag": "iframe",
-      "id": "",
-      "classes": [],
-      "attributes": {
-        "height": "0",
-        "width": "0",
-        "src": "https://14756892.fls.doubleclick.net/activityi;src=14756892;type=counter;cat=motle0;ord=8426111188750;npa=0;auiddc=2087013178.1731195098;u1=https%3A%2F%2Fwww.fool.com%2Fpremium;u2=undefined;gdid=dYWJhMj;ps=1;pcor=808263247;uaa=x64;uab=64;uafvl=Not%253FA_Brand%3B99.0.0.0%7CChromium%3B130.0.6723.31;uamb=0;uam=;uap=Windows;uapv=10.0;uaw=0;pscdl=noapi;frm=0;gtm=45fe4b70v9192305618z86122374za201zb6122374;gcd=13l3l3l3l1l1;dma=0;tag_exp=101823848~101925629;epver=2;~oref=https%3A%2F%2Fwww.fool.com%2Fpremium?",
-        "style": "display: none; visibility: hidden;",
-        "title": "14756892-fls-doubleclick",
-        "data-uw-rm-iframe": "gn"
-      },
-      "text": "",
-      "children": []
-    },
-    {
-      "tag": "iframe",
-      "id": "",
-      "classes": [],
-      "attributes": {
-        "allow": "join-ad-interest-group",
-        "data-tagging-id": "DC-14756892/counter/motle0+standard",
-        "data-load-time": "1731195098165",
-        "height": "0",
-        "width": "0",
-        "src": "https://td.doubleclick.net/td/fls/rul/activityi;fledge=1;src=14756892;type=counter;cat=motle0;ord=8426111188750;npa=0;auiddc=2087013178.1731195098;u1=https%3A%2F%2Fwww.fool.com%2Fpremium;u2=undefined;gdid=dYWJhMj;ps=1;pcor=808263247;uaa=x64;uab=64;uafvl=Not%253FA_Brand%3B99.0.0.0%7CChromium%3B130.0.6723.31;uamb=0;uam=;uap=Windows;uapv=10.0;uaw=0;pscdl=noapi;frm=0;gtm=45fe4b70v9192305618z86122374za201zb6122374;gcd=13l3l3l3l1l1;dma=0;tag_exp=101823848~101925629;epver=2;~oref=https%3A%2F%2Fwww.fool.com%2Fpremium?",
-        "style": "display: none; visibility: hidden;",
-        "title": "td-doubleclick",
-        "data-uw-rm-iframe": "gn"
-      },
-      "text": "",
-      "children": []
-    },
-    {
-      "tag": "iframe",
-      "id": "",
-      "classes": [],
-      "attributes": {
-        "height": "0",
-        "width": "0",
-        "src": "https://14756892.fls.doubleclick.net/activityi;src=14756892;type=landing;cat=motle0;ord=1;num=9781306328793;npa=0;auiddc=2087013178.1731195098;u1=https%3A%2F%2Fwww.fool.com%2Fpremium;gdid=dYWJhMj;ps=1;pcor=1629350744;uaa=x64;uab=64;uafvl=Not%253FA_Brand%3B99.0.0.0%7CChromium%3B130.0.6723.31;uamb=0;uam=;uap=Windows;uapv=10.0;uaw=0;pscdl=noapi;frm=0;gtm=45fe4b70v9192305618z86122374za201zb6122374;gcd=13l3l3l3l1l1;dma=0;tag_exp=101823848~101925629;epver=2;~oref=https%3A%2F%2Fwww.fool.com%2Fpremium?",
-        "style": "display: none; visibility: hidden;",
-        "title": "14756892-fls-doubleclick",
-        "data-uw-rm-iframe": "gn"
-      },
-      "text": "",
-      "children": []
-    },
-    {
-      "tag": "iframe",
-      "id": "",
-      "classes": [],
-      "attributes": {
-        "allow": "join-ad-interest-group",
-        "data-tagging-id": "DC-14756892/landing/motle0+unique",
-        "data-load-time": "1731195098171",
-        "height": "0",
-        "width": "0",
-        "src": "https://td.doubleclick.net/td/fls/rul/activityi;fledge=1;src=14756892;type=landing;cat=motle0;ord=1;num=9781306328793;npa=0;auiddc=2087013178.1731195098;u1=https%3A%2F%2Fwww.fool.com%2Fpremium;gdid=dYWJhMj;ps=1;pcor=1629350744;uaa=x64;uab=64;uafvl=Not%253FA_Brand%3B99.0.0.0%7CChromium%3B130.0.6723.31;uamb=0;uam=;uap=Windows;uapv=10.0;uaw=0;pscdl=noapi;frm=0;gtm=45fe4b70v9192305618z86122374za201zb6122374;gcd=13l3l3l3l1l1;dma=0;tag_exp=101823848~101925629;epver=2;~oref=https%3A%2F%2Fwww.fool.com%2Fpremium?",
-        "style": "display: none; visibility: hidden;",
-        "title": "td-doubleclick",
-        "data-uw-rm-iframe": "gn"
-      },
-      "text": "",
-      "children": []
-    },
-    {
       "tag": "script",
       "id": "",
       "classes": [],
@@ -1385,8 +1311,65 @@
         "width": "0",
         "aria-hidden": "true",
         "alt": "",
-        "style": "pointer-events: none; height: 0px; width: 0px; position: absolute; padding: 0px; margin: 0px; border: 0px; visibility: hidden;",
-        "data-uw-rm-iframe": "un"
+        "style": "pointer-events: none; height: 0px; width: 0px; position: absolute; padding: 0px; margin: 0px; border: 0px; visibility: hidden;"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "iframe",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "height": "0",
+        "width": "0",
+        "src": "https://14756892.fls.doubleclick.net/activityi;src=14756892;type=counter;cat=motle0;ord=196601231292;npa=0;auiddc=1444912521.1731197309;u1=https%3A%2F%2Fwww.fool.com%2Fpremium;u2=undefined;gdid=dYWJhMj;ps=1;pcor=359587460;uaa=x64;uab=64;uafvl=Chromium%3B130.0.6723.31%7CHeadlessChrome%3B130.0.6723.31%7CNot%253FA_Brand%3B99.0.0.0;uamb=0;uam=;uap=Windows;uapv=10.0;uaw=0;pscdl=noapi;frm=0;gtm=45fe4b70v9192305618z86122374za201zb6122374;gcd=13l3l3l3l1l1;dma=0;tag_exp=101823848~101925629~102017403;epver=2;~oref=https%3A%2F%2Fwww.fool.com%2Fpremium?",
+        "style": "display: none; visibility: hidden;"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "iframe",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "allow": "join-ad-interest-group",
+        "data-tagging-id": "DC-14756892/counter/motle0+standard",
+        "data-load-time": "1731197309350",
+        "height": "0",
+        "width": "0",
+        "src": "https://td.doubleclick.net/td/fls/rul/activityi;fledge=1;src=14756892;type=counter;cat=motle0;ord=196601231292;npa=0;auiddc=1444912521.1731197309;u1=https%3A%2F%2Fwww.fool.com%2Fpremium;u2=undefined;gdid=dYWJhMj;ps=1;pcor=359587460;uaa=x64;uab=64;uafvl=Chromium%3B130.0.6723.31%7CHeadlessChrome%3B130.0.6723.31%7CNot%253FA_Brand%3B99.0.0.0;uamb=0;uam=;uap=Windows;uapv=10.0;uaw=0;pscdl=noapi;frm=0;gtm=45fe4b70v9192305618z86122374za201zb6122374;gcd=13l3l3l3l1l1;dma=0;tag_exp=101823848~101925629~102017403;epver=2;~oref=https%3A%2F%2Fwww.fool.com%2Fpremium?",
+        "style": "display: none; visibility: hidden;"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "iframe",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "height": "0",
+        "width": "0",
+        "src": "https://14756892.fls.doubleclick.net/activityi;src=14756892;type=landing;cat=motle0;ord=1;num=5855082715024;npa=0;auiddc=1444912521.1731197309;u1=https%3A%2F%2Fwww.fool.com%2Fpremium;gdid=dYWJhMj;ps=1;pcor=139104430;uaa=x64;uab=64;uafvl=Chromium%3B130.0.6723.31%7CHeadlessChrome%3B130.0.6723.31%7CNot%253FA_Brand%3B99.0.0.0;uamb=0;uam=;uap=Windows;uapv=10.0;uaw=0;pscdl=noapi;frm=0;gtm=45fe4b70v9192305618z86122374za201zb6122374;gcd=13l3l3l3l1l1;dma=0;tag_exp=101823848~101925629~102017403;epver=2;~oref=https%3A%2F%2Fwww.fool.com%2Fpremium?",
+        "style": "display: none; visibility: hidden;"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "iframe",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "allow": "join-ad-interest-group",
+        "data-tagging-id": "DC-14756892/landing/motle0+unique",
+        "data-load-time": "1731197309356",
+        "height": "0",
+        "width": "0",
+        "src": "https://td.doubleclick.net/td/fls/rul/activityi;fledge=1;src=14756892;type=landing;cat=motle0;ord=1;num=5855082715024;npa=0;auiddc=1444912521.1731197309;u1=https%3A%2F%2Fwww.fool.com%2Fpremium;gdid=dYWJhMj;ps=1;pcor=139104430;uaa=x64;uab=64;uafvl=Chromium%3B130.0.6723.31%7CHeadlessChrome%3B130.0.6723.31%7CNot%253FA_Brand%3B99.0.0.0;uamb=0;uam=;uap=Windows;uapv=10.0;uaw=0;pscdl=noapi;frm=0;gtm=45fe4b70v9192305618z86122374za201zb6122374;gcd=13l3l3l3l1l1;dma=0;tag_exp=101823848~101925629~102017403;epver=2;~oref=https%3A%2F%2Fwww.fool.com%2Fpremium?",
+        "style": "display: none; visibility: hidden;"
       },
       "text": "",
       "children": []
@@ -1398,13 +1381,11 @@
       "attributes": {
         "allow": "join-ad-interest-group",
         "data-tagging-id": "G-B6G4KMLCV0",
-        "data-load-time": "1731195098291",
+        "data-load-time": "1731197309475",
         "height": "0",
         "width": "0",
-        "src": "https://td.doubleclick.net/td/ga/rul?tid=G-B6G4KMLCV0&gacid=900035154.1731195087&gtm=45je4b70v868895564z86122374za200zb6122374&dma=0&gcd=13l3l3l3l1l1&npa=0&pscdl=noapi&aip=1&fledge=1&frm=0&tag_exp=101823848~101925629&z=777550733",
-        "style": "display: none; visibility: hidden;",
-        "title": "td-doubleclick",
-        "data-uw-rm-iframe": "gn"
+        "src": "https://td.doubleclick.net/td/ga/rul?tid=G-B6G4KMLCV0&gacid=1156384432.1731197299&gtm=45je4b70v868895564z86122374za200zb6122374&dma=0&gcd=13l3l3l3l1l1&npa=0&pscdl=noapi&aip=1&fledge=1&frm=0&tag_exp=101823848~101925629&z=445227837",
+        "style": "display: none; visibility: hidden;"
       },
       "text": "",
       "children": []
@@ -1421,19 +1402,27 @@
       "children": []
     },
     {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "src": "//tr.outbrain.com/cachedClickId?marketerId=00e9ce2f1c669946a79bfac548f4eebd1a"
+      },
+      "text": "",
+      "children": []
+    },
+    {
       "tag": "iframe",
       "id": "",
       "classes": [],
       "attributes": {
         "allow": "join-ad-interest-group",
         "data-tagging-id": "AW-760307589",
-        "data-load-time": "1731195098367",
+        "data-load-time": "1731197309638",
         "height": "0",
         "width": "0",
-        "src": "https://td.doubleclick.net/td/rul/760307589?random=1731195098344&cv=11&fst=1731195098344&fmt=3&bg=ffffff&guid=ON&async=1&gtm=45be4b70v877903725za200&gcd=13l3l3l3l1l1&dma=0&tag_exp=101823848~101925629&u_w=1920&u_h=1080&url=https%3A%2F%2Fwww.fool.com%2Fpremium&hn=www.googleadservices.com&frm=0&tiba=Home%20%7C%20Stock%20Advisor%20%7C%20The%20Motley%20Fool&did=dYWJhMj&gdid=dYWJhMj&npa=0&pscdl=noapi&auid=2087013178.1731195098&uaa=x64&uab=64&uafvl=Not%253FA_Brand%3B99.0.0.0%7CChromium%3B130.0.6723.31&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&fledge=1&data=event%3Dgtag.config",
-        "style": "display: none; visibility: hidden;",
-        "title": "td-doubleclick",
-        "data-uw-rm-iframe": "gn"
+        "src": "https://td.doubleclick.net/td/rul/760307589?random=1731197309616&cv=11&fst=1731197309616&fmt=3&bg=ffffff&guid=ON&async=1&gtm=45be4b70v877903725za200&gcd=13l3l3l3l1l1&dma=0&tag_exp=101823848~101925629&u_w=1920&u_h=1080&url=https%3A%2F%2Fwww.fool.com%2Fpremium&hn=www.googleadservices.com&frm=0&tiba=Home%20%7C%20Stock%20Advisor%20%7C%20The%20Motley%20Fool&did=dYWJhMj&gdid=dYWJhMj&npa=0&pscdl=noapi&auid=1444912521.1731197309&uaa=x64&uab=64&uafvl=Chromium%3B130.0.6723.31%7CHeadlessChrome%3B130.0.6723.31%7CNot%253FA_Brand%3B99.0.0.0&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&fledge=1&data=event%3Dgtag.config",
+        "style": "display: none; visibility: hidden;"
       },
       "text": "",
       "children": []
@@ -1457,13 +1446,11 @@
       "attributes": {
         "allow": "join-ad-interest-group",
         "data-tagging-id": "AW-803720290",
-        "data-load-time": "1731195098401",
+        "data-load-time": "1731197309676",
         "height": "0",
         "width": "0",
-        "src": "https://td.doubleclick.net/td/rul/803720290?random=1731195098391&cv=11&fst=1731195098391&fmt=3&bg=ffffff&guid=ON&async=1&gtm=45be4b70v9105028976za200&gcd=13l3l3l3l1l1&dma=0&tag_exp=101823848~101925629&u_w=1920&u_h=1080&url=https%3A%2F%2Fwww.fool.com%2Fpremium&hn=www.googleadservices.com&frm=0&tiba=Home%20%7C%20Stock%20Advisor%20%7C%20The%20Motley%20Fool&did=dYWJhMj&gdid=dYWJhMj&npa=0&pscdl=noapi&auid=2087013178.1731195098&uaa=x64&uab=64&uafvl=Not%253FA_Brand%3B99.0.0.0%7CChromium%3B130.0.6723.31&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&fledge=1&data=event%3Dgtag.config",
-        "style": "display: none; visibility: hidden;",
-        "title": "td-doubleclick",
-        "data-uw-rm-iframe": "gn"
+        "src": "https://td.doubleclick.net/td/rul/803720290?random=1731197309665&cv=11&fst=1731197309665&fmt=3&bg=ffffff&guid=ON&async=1&gtm=45be4b70v9105028976za200&gcd=13l3l3l3l1l1&dma=0&tag_exp=101823848~101925629&u_w=1920&u_h=1080&url=https%3A%2F%2Fwww.fool.com%2Fpremium&hn=www.googleadservices.com&frm=0&tiba=Home%20%7C%20Stock%20Advisor%20%7C%20The%20Motley%20Fool&did=dYWJhMj&gdid=dYWJhMj&npa=0&pscdl=noapi&auid=1444912521.1731197309&uaa=x64&uab=64&uafvl=Chromium%3B130.0.6723.31%7CHeadlessChrome%3B130.0.6723.31%7CNot%253FA_Brand%3B99.0.0.0&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&fledge=1&data=event%3Dgtag.config",
+        "style": "display: none; visibility: hidden;"
       },
       "text": "",
       "children": []
@@ -1478,41 +1465,6 @@
         "charset": ""
       },
       "text": "window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag(\"js\",new Date);",
-      "children": []
-    },
-    {
-      "tag": "iframe",
-      "id": "",
-      "classes": [],
-      "attributes": {
-        "height": "0",
-        "width": "0",
-        "style": "display: none; visibility: hidden;",
-        "data-uw-rm-iframe": "un"
-      },
-      "text": "",
-      "children": []
-    },
-    {
-      "tag": "script",
-      "id": "",
-      "classes": [],
-      "attributes": {
-        "src": "//tr.outbrain.com/cachedClickId?marketerId=00e9ce2f1c669946a79bfac548f4eebd1a"
-      },
-      "text": "",
-      "children": []
-    },
-    {
-      "tag": "script",
-      "id": "",
-      "classes": [],
-      "attributes": {
-        "type": "text/javascript",
-        "id": "",
-        "charset": ""
-      },
-      "text": "window.PushlySDK=window.PushlySDK||[];function pushly(){window.PushlySDK.push(arguments)}pushly(\"loa",
       "children": []
     },
     {
@@ -1532,73 +1484,61 @@
       "id": "",
       "classes": [],
       "attributes": {
-        "src": "https://analytics.fatmedia.io/ctl?nr=6645fd48bda8c089e21a9f60&cls=generic&referer=&location=https%3A%2F%2Fwww.fool.com%2Fpremium&sw=1920&sh=1080&fpc=-1545329995&sch=true&tch=false&dpi=96&plg=PDF%20Viewer%20Chrome%20PDF%20Viewer%20Chromium%20PDF%20Viewer%20Microsoft%20Edge%20PDF%20Viewer%20WebKit%20built-in%20PDF%20&psk=31783535463"
+        "src": "https://analytics.fatmedia.io/ctl?nr=6645fd48bda8c089e21a9f60&cls=generic&referer=&location=https%3A%2F%2Fwww.fool.com%2Fpremium&sw=1920&sh=1080&fpc=779205522&sch=true&tch=false&dpi=96&plg=&psk=513025024266"
+      },
+      "text": "",
+      "children": []
+    },
+    {
+      "tag": "script",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "type": "text/javascript",
+        "id": "",
+        "charset": ""
+      },
+      "text": "window.PushlySDK=window.PushlySDK||[];function pushly(){window.PushlySDK.push(arguments)}pushly(\"loa",
+      "children": []
+    },
+    {
+      "tag": "iframe",
+      "id": "",
+      "classes": [],
+      "attributes": {
+        "height": "0",
+        "width": "0",
+        "style": "display: none; visibility: hidden;"
       },
       "text": "",
       "children": []
     },
     {
       "tag": "div",
-      "id": "batBeacon127664650152",
+      "id": "batBeacon702564871019",
       "classes": [],
       "attributes": {
-        "id": "batBeacon127664650152",
+        "id": "batBeacon702564871019",
         "style": "width: 0px; height: 0px; display: none; visibility: hidden;"
       },
       "text": "",
       "children": [
         {
           "tag": "img",
-          "id": "batBeacon137305154175",
+          "id": "batBeacon535110333541",
           "classes": [],
           "attributes": {
-            "id": "batBeacon137305154175",
+            "id": "batBeacon535110333541",
             "width": "0",
             "height": "0",
             "alt": "",
-            "src": "https://bat.bing.com/action/0?ti=5151830&Ver=2&mid=ad7657cb-867e-4f1b-baab-45b995a6ed68&bo=1&sid=c473b1909ef211efbc71edee65d63a2e&vid=c473d1909ef211ef8acd73f630167761&vids=1&msclkid=N&uach=pv%3D10.0&pi=918639831&lg=en-US&sw=1920&sh=1080&sc=24&nwd=1&tl=Home%20%7C%20Stock%20Advisor%20%7C%20The%20Motley%20Fool&p=https%3A%2F%2Fwww.fool.com%2Fpremium&r=&lt=2013&evt=pageLoad&sv=1&cdb=AQET&rn=535358",
+            "src": "https://bat.bing.com/action/0?ti=5151830&Ver=2&mid=a1558a1c-2ac7-4b35-b01a-374c6db9abf4&bo=1&sid=ea60c6109ef711ef8008b1883dfdf595&vid=ea60d6509ef711efa908df0b270cecbb&vids=1&msclkid=N&uach=pv%3D10.0&pi=0&lg=en-US&sw=1920&sh=1080&sc=24&nwd=1&tl=Home%20%7C%20Stock%20Advisor%20%7C%20The%20Motley%20Fool&p=https%3A%2F%2Fwww.fool.com%2Fpremium&r=&lt=1882&evt=pageLoad&sv=1&cdb=AQET&rn=950485",
             "style": "width: 0px; height: 0px; display: none; visibility: hidden;"
           },
           "text": "",
           "children": []
         }
       ]
-    },
-    {
-      "tag": "iframe",
-      "id": "",
-      "classes": [],
-      "attributes": {
-        "allow": "join-ad-interest-group",
-        "data-tagging-id": "AW-760307589",
-        "data-load-time": "1731195100437",
-        "height": "0",
-        "width": "0",
-        "src": "https://td.doubleclick.net/td/rul/760307589?random=1731195100428&cv=11&fst=1731195100428&fmt=3&bg=ffffff&guid=ON&async=1&gtm=45be4b70v877903725za200&gcd=13l3l3l3l1l1&dma=0&tag_exp=101823848~101925629&u_w=1920&u_h=1080&url=https%3A%2F%2Fwww.fool.com%2Fpremium&hn=www.googleadservices.com&frm=0&tiba=Home%20%7C%20Stock%20Advisor%20%7C%20The%20Motley%20Fool&did=dYWJhMj&gdid=dYWJhMj&npa=0&pscdl=noapi&auid=2087013178.1731195098&uaa=x64&uab=64&uafvl=Not%253FA_Brand%3B99.0.0.0%7CChromium%3B130.0.6723.31&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&fledge=1&data=event%3DtrackOptanonEvent%3BoptanonCategory%3DOneTrust%20Cookie%20Consent%3BoptanonAction%3DBanner%20Accept%20Cookies",
-        "style": "display: none; visibility: hidden;",
-        "title": "td-doubleclick",
-        "data-uw-rm-iframe": "gn"
-      },
-      "text": "",
-      "children": []
-    },
-    {
-      "tag": "iframe",
-      "id": "",
-      "classes": [],
-      "attributes": {
-        "allow": "join-ad-interest-group",
-        "data-tagging-id": "AW-803720290",
-        "data-load-time": "1731195100443",
-        "height": "0",
-        "width": "0",
-        "src": "https://td.doubleclick.net/td/rul/803720290?random=1731195100440&cv=11&fst=1731195100440&fmt=3&bg=ffffff&guid=ON&async=1&gtm=45be4b70v9105028976za200&gcd=13l3l3l3l1l1&dma=0&tag_exp=101823848~101925629&u_w=1920&u_h=1080&url=https%3A%2F%2Fwww.fool.com%2Fpremium&hn=www.googleadservices.com&frm=0&tiba=Home%20%7C%20Stock%20Advisor%20%7C%20The%20Motley%20Fool&did=dYWJhMj&gdid=dYWJhMj&npa=0&pscdl=noapi&auid=2087013178.1731195098&uaa=x64&uab=64&uafvl=Not%253FA_Brand%3B99.0.0.0%7CChromium%3B130.0.6723.31&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&fledge=1&data=event%3DtrackOptanonEvent%3BoptanonCategory%3DOneTrust%20Cookie%20Consent%3BoptanonAction%3DBanner%20Accept%20Cookies",
-        "style": "display: none; visibility: hidden;",
-        "title": "td-doubleclick",
-        "data-uw-rm-iframe": "gn"
-      },
-      "text": "",
-      "children": []
     },
     {
       "tag": "img",
@@ -1614,28 +1554,6 @@
         "alt": "",
         "style": "pointer-events: none; height: 0px; width: 0px; position: absolute; padding: 0px; margin: 0px; border: 0px; visibility: hidden;",
         "class": "optanon-category-C0004 "
-      },
-      "text": "",
-      "children": []
-    },
-    {
-      "tag": "script",
-      "id": "",
-      "classes": [],
-      "attributes": {
-        "src": "https://cdn.userway.org/remediations/per_site/892134/A3r95y88KxHtlAwO.js"
-      },
-      "text": "",
-      "children": []
-    },
-    {
-      "tag": "script",
-      "id": "",
-      "classes": [],
-      "attributes": {
-        "crossorigin": "anonymous",
-        "integrity": "sha256-SO73/mGj4sfIisHGomO9hRtqBTY2B+Uv0r5ORHLUIlU=",
-        "src": "https://cdn.userway.org/widgetapp/2024-11-01-10-09-24/remediation/nav_menu_helper_1730455764190.js"
       },
       "text": "",
       "children": []

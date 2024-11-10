@@ -1,3 +1,4 @@
+from pydoc import text
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeout
 import json
 import logging
@@ -77,7 +78,7 @@ class WebScraper:
             self.logger.warning("Timeout while waiting for network to be idle")
 
     def login(self, url: str, credentials: Dict[str, str], 
-              selectors: Dict[str, str], success_indicator: str) -> bool:
+          selectors: Dict[str, str]) -> bool:
         try:
             # Navigate to login page with wait until network idle
             self.logger.info(f"Navigating to {url}")
@@ -89,8 +90,8 @@ class WebScraper:
             # Ensure login form is fully loaded
             self.logger.info("Waiting for login form...")
             self.page.wait_for_selector(selectors['username_field'], 
-                                      state='visible', 
-                                      timeout=20000)
+                                    state='visible', 
+                                    timeout=20000)
             
             # Additional wait to ensure form is interactive
             time.sleep(2)
@@ -106,62 +107,23 @@ class WebScraper:
             
             # Wait for page load after login
             self.wait_for_page_load()
-
-            self.capture_page_content()
             
-            # Check for login success
-            try:
-                self.logger.info("Checking for successful login...")
-                self.page.wait_for_selector(success_indicator, timeout=30000)
-                self.logger.info("Login successful")
-                return True
-            except PlaywrightTimeout:
-                self.logger.error("Login success indicator not found")
-                return False
-            
+            return True
+                
         except PlaywrightTimeout:
             self.logger.error("Timeout while trying to log in")
             return False
         except Exception as e:
             self.logger.error(f"Login failed: {str(e)}")
             return False
-
-    def scrape_content(self, selectors: Dict[str, str]) -> Dict[str, Any]:
-        data = {}
-        try:
-            # Wait for page to be fully loaded before scraping
-            self.wait_for_page_load()
-            
-            for key, selector in selectors.items():
-                try:
-                    # Wait for each element with increased timeout
-                    self.logger.info(f"Waiting for element: {key}")
-                    
-                    # First wait for element to exist in DOM
-                    self.page.wait_for_selector(selector, timeout=20000)
-                    
-                    # Then wait for element to be visible
-                    self.page.wait_for_selector(selector, 
-                                              state='visible', 
-                                              timeout=20000)
-                    
-                    # Get text content
-                    element = self.page.query_selector(selector)
-                    if element:
-                        data[key] = element.inner_text()
-                        self.logger.info(f"Successfully scraped {key}")
-                    else:
-                        data[key] = None
-                        self.logger.warning(f"Element found but no text content for: {key}")
-                
-                except PlaywrightTimeout:
-                    self.logger.warning(f"Timeout waiting for element: {key}")
-                    data[key] = None
-            
-            return data
-        except Exception as e:
-            self.logger.error(f"Error scraping content: {str(e)}")
-            return data
+        
+    def verify_login(self, text_content: str) -> bool:
+        """Verify login by checking for 'Home' in the page content"""
+        if text_content and "Home" in text_content:
+            self.logger.info("Login verified - 'Home' found in page content")
+            return True
+        self.logger.error("Login verification failed - 'Home' not found in page content")
+        return False
 
     def save_data(self, data: Dict[str, Any], filename: str):
         try:
@@ -176,7 +138,7 @@ class WebScraper:
             self.logger.error(f"Error saving data: {str(e)}")
 
     def capture_page_content(self):
-        """Add this method to your WebScraper class"""
+        """Capture and save page content, return text content for verification"""
         try:
             # Get full HTML
             html_content = self.page.content()
@@ -202,7 +164,7 @@ class WebScraper:
                         id: element.id,
                         classes: Array.from(element.classList),
                         attributes: {},
-                        text: element.innerText.slice(0, 100), // First 100 chars
+                        text: element.innerText.slice(0, 100),
                         children: []
                     };
                     
@@ -212,7 +174,7 @@ class WebScraper:
                     }
                     
                     // Get children if not too deep
-                    if (depth < 3) {  // Limit depth to avoid too much data
+                    if (depth < 3) {
                         for (const child of element.children) {
                             info.children.push(getElementInfo(child, depth + 1));
                         }
@@ -228,8 +190,68 @@ class WebScraper:
             with open('page_structure.json', 'w', encoding='utf-8') as f:
                 json.dump(elements_info, f, indent=2)
                 
+            return text_content
+                    
         except Exception as e:
             self.logger.error(f"Error capturing page content: {str(e)}")
+            return None
+        
+    def parse_stocks_from_text(self, text_content: str) -> dict:
+        """Parse stock information from text content into a structured dictionary"""
+        stocks = {}
+        
+        try:
+            # Find the start of stocks section
+            lines = text_content.split('\n')
+            start_index = -1
+            
+            # Find where the stock listings begin
+            for i, line in enumerate(lines):
+                if line.strip() == "Symbol" and \
+                lines[i+2].strip() == "Price" and \
+                lines[i+4].strip() == "Change" and \
+                lines[i+6].strip() == "Change %":
+                    start_index = i + 7
+                    break
+            
+            if start_index == -1:
+                raise ValueError("Could not find stock section in text content")
+
+            # Process stock entries
+            current_stock = {}
+            count = 0
+            
+            for line in lines[start_index:]:
+                line = line.strip()
+                if not line:  # Skip empty lines
+                    continue
+                    
+                # If we hit 'Coverage', we've reached the end of stocks section
+                if line == "Coverage":
+                    break
+                    
+                # Process based on count within each stock entry
+                if count == 0:  # Symbol
+                    if '$' in line:  # This is a price, skip
+                        continue
+                    current_symbol = line
+                    current_stock = {'symbol': line}
+                elif count == 1:  # Price
+                    current_stock['price'] = float(line.replace('$', '').replace(',', ''))
+                elif count == 2:  # Change
+                    current_stock['change'] = float(line.replace('$', '').replace(',', ''))
+                elif count == 3:  # Change %
+                    current_stock['change_percent'] = float(line.replace('+', '').replace('%', ''))
+                    stocks[current_symbol] = current_stock
+                    count = -1
+                
+                count += 1
+                
+            return stocks
+            
+        except Exception as e:
+            print(f"Error parsing stocks: {str(e)}")
+            return {}
 
     def close(self):
         try:
@@ -259,17 +281,12 @@ def main():
         'selectors': {
             'username_field': '#usernameOrEmail',
             'password_field': '#password',
-            'login_button': 'button[type="submit"]',
-            'content': {
-                'title': '.cursor-pointer.inline-block',  # Fixed selector format
-                'price': '[data-uw-rm-sr=""]'  # Added price selector
-            }
-        },
-        'success_indicator': '.header-user-menu'  # Adjust this to match actual dashboard indicator
+            'login_button': 'button[type="submit"]'
+        }
     }
 
     # Initialize scraper with longer delay for dynamic content
-    scraper = WebScraper(headless=False, slow_mo=200)
+    scraper = WebScraper(headless=True)
 
     try:
         scraper.start()
@@ -277,15 +294,20 @@ def main():
         if scraper.login(
             config['url'],
             config['credentials'],
-            config['selectors'],
-            config['success_indicator']
+            config['selectors']
         ):
-            # Wait for everything to load
-            scraper.wait_for_page_load()
-            time.sleep(5)  # Give extra time for dynamic content
+            text_content = scraper.capture_page_content()
+            if scraper.verify_login(text_content):
+                scraper.logger.info("Login successful")
+
+            if text_content:  # Make sure we got content back
+                # Parse and print stocks
+                stocks_data = scraper.parse_stocks_from_text(text_content)
+                print("\nStock Data:")
+                print(json.dumps(stocks_data, indent=2))  # Pretty print the results
+            else:
+                print("Failed to capture page content")
             
-            # Capture the page content - this will create page_content.html and page_structure.json
-            # scraper.capture_page_content()
             
     finally:
         scraper.close()
