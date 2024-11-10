@@ -18,18 +18,11 @@ Discuss
 Help
 Accessibility
 Home
-Dow
-43,988.99
-+0.59%
-S&P 500
-5,995.54
-+0.38%
-Nasdaq
-19,286.78
-+0.09%
-Bitcoin
-76,626.86
-+0.19%
+Home
+Dow43,988.99+0.59%
+S&P 5005,995.54+0.38%
+Nasdaq19,286.78+0.09%
+Bitcoin76,689.42+0.27%
 My Stocks
 All Stocks
 Symbol
@@ -218,9 +211,7 @@ $308.53
 	
 -2.15%
 Coverage
-Top Stories
-Analyst Insights
-My Stocks
+Top StoriesAnalyst InsightsMy Stocks
 Weekly News: No Election Year Blues
 7.8
 MercadoLibre Falls: A Fool Reacts
@@ -240,7 +231,7 @@ The Bottom Line: Eli Lilly, Pinterest, Lemonade
 Scoreboard: RPM International
 2
 9.0
-New Recommendations
+New RecommendationsNew Recs
 Symbol
 	
 Action
@@ -252,7 +243,7 @@ Type
 Service
 EME
 	
-BUY
+Buy
 	
 11/07/24
 	
@@ -263,7 +254,7 @@ SA
 
 CART
 	
-BUY
+Buy
 	
 10/17/24
 	
@@ -274,7 +265,7 @@ SA
 
 DASH
 	
-BUY
+Buy
 	
 10/03/24
 	
@@ -285,7 +276,7 @@ SA
 
 WING
 	
-BUY
+Buy
 	
 09/19/24
 	
@@ -296,7 +287,7 @@ SA
 
 U
 	
-BUY
+Buy
 	
 09/05/24
 	
@@ -307,7 +298,7 @@ SA
 
 HA
 	
-SELL
+Sell
 	
 08/23/24
 	
@@ -318,7 +309,7 @@ SA
 
 GRAL
 	
-SELL
+Sell
 	
 08/23/24
 	
@@ -329,7 +320,7 @@ SA
 
 LULU
 	
-BUY
+Buy
 	
 08/15/24
 	
@@ -340,7 +331,7 @@ SA
 
 PGR
 	
-BUY
+Buy
 	
 08/01/24
 	
@@ -351,7 +342,7 @@ SA
 
 GMED
 	
-BUY
+Buy
 	
 07/18/24
 	
