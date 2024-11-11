@@ -3,6 +3,7 @@ import json
 import logging
 from datetime import datetime
 from typing import Optional, Dict, Any
+import os
 
 class WebScraper:
     def __init__(self, headless: bool = True, slow_mo: int = 0):
@@ -97,8 +98,12 @@ class WebScraper:
                 return document.body.innerText;
             }''')
             
+            # Create folder to save extracted content
+            output_folder = 'extracted_content'
+            os.makedirs(output_folder, exist_ok=True)
+            
             # Save text content
-            with open('text_content.txt', 'w', encoding='utf-8') as f:
+            with open(os.path.join(output_folder, 'text_content.txt'), 'w', encoding='utf-8') as f:
                 f.write(text_content)
             
             # Save page structure
@@ -118,7 +123,7 @@ class WebScraper:
                 return getElementInfo(document.body);
             }''')
             
-            with open('page_structure.json', 'w', encoding='utf-8') as f:
+            with open(os.path.join(output_folder, 'page_structure.json'), 'w', encoding='utf-8') as f:
                 json.dump(elements_info, f, indent=2)
             
             return text_content
@@ -129,46 +134,24 @@ class WebScraper:
 
     def parse_stocks_from_text(self, text_content: str) -> dict:
         """Parse stock information"""
-        if not text_content:
-            return {}
-            
-        stocks = {}
+        # Stub function - Implementation removed as requested
+        return {}
+
+    def scrape_fool_premium_stocks(self):
+        """Navigate to Fool Premium Stocks page and extract content"""
         try:
-            lines = [line.strip() for line in text_content.split('\n') if line.strip()]
+            target_url = "https://www.fool.com/premium/my-stocks"
+            self.page.goto(target_url, wait_until="domcontentloaded")
+            self.wait_for_page_load()
+            self.capture_page_content()
             
-            try:
-                start_index = lines.index("Symbol") + 7
-            except ValueError:
-                return {}
-            
-            i = start_index
-            while i < len(lines):
-                if lines[i] == "Coverage":
-                    break
-                    
-                if i + 3 < len(lines):
-                    try:
-                        symbol = lines[i]
-                        if '$' not in symbol:
-                            stocks[symbol] = {
-                                'symbol': symbol,
-                                'price': float(lines[i + 1].replace('$', '').replace(',', '')),
-                                'change': float(lines[i + 2].replace('$', '').replace(',', '')),
-                                'change_percent': float(lines[i + 3].replace('+', '').replace('%', ''))
-                            }
-                            i += 4
-                        else:
-                            i += 1
-                    except (ValueError, IndexError):
-                        i += 1
-                else:
-                    break
-                    
-            return stocks
-            
+            # Take a screenshot of the final page
+            output_folder = 'extracted_content'
+            screenshot_path = os.path.join(output_folder, 'final_page_screenshot.png')
+            self.page.screenshot(path=screenshot_path)
+            self.logger.info(f"Screenshot saved to {screenshot_path}")
         except Exception as e:
-            self.logger.error(f"Error parsing stocks: {str(e)}")
-            return {}
+            self.logger.error(f"Error navigating to Fool Premium Stocks page: {str(e)}")
 
     def close(self):
         """Clean up resources"""
@@ -203,14 +186,10 @@ def main():
         scraper.start()
         
         if scraper.login(config['url'], config['credentials'], config['selectors']):
-            text_content = scraper.capture_page_content()
-            if text_content:
-                stocks_data = scraper.parse_stocks_from_text(text_content)
-                print("\nStock Data:")
-                print(json.dumps(stocks_data, indent=2))
-            else:
-                print("Failed to capture page content")
-            
+            scraper.scrape_fool_premium_stocks()
+        else:
+            print("Login failed")
+        
     finally:
         scraper.close()
 
