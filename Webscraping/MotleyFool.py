@@ -4,6 +4,7 @@ import logging
 from datetime import datetime
 from typing import Optional, Dict, Any
 import os
+import time
 
 class WebScraper:
     def __init__(self, headless: bool = True, slow_mo: int = 0):
@@ -65,8 +66,9 @@ class WebScraper:
     def wait_for_full_page_load(self):
         """Wait for all network requests to finish and the page to be fully loaded"""
         try:
-            self.page.wait_for_load_state("load", timeout=30000)
-            self.page.wait_for_load_state("networkidle", timeout=30000)
+            self.page.wait_for_load_state("load", timeout=60000)
+            time.sleep(10)
+            self.page.wait_for_load_state("networkidle", timeout=60000)
             self.logger.info("Full page load completed successfully")
         except PlaywrightTimeout:
             self.logger.warning("Timeout while waiting for full page load")
@@ -106,7 +108,7 @@ class WebScraper:
         try:
             # Get text content directly
             text_content = self.page.evaluate('''() => {
-                return document.body.innerText;
+                return document.documentElement.outerText;
             }''')
             
             # Create folder to save extracted content
@@ -120,12 +122,12 @@ class WebScraper:
             # Save page structure
             elements_info = self.page.evaluate('''() => {
                 function getElementInfo(element, depth = 0) {
-                    if (depth >= 3) return null;
+                    if (depth >= 5 || !element) return null;
                     return {
-                        tag: element.tagName.toLowerCase(),
-                        id: element.id,
-                        classes: Array.from(element.classList),
-                        text: element.innerText.slice(0, 100),
+                        tag: element.tagName ? element.tagName.toLowerCase() : null,
+                        id: element.id || null,
+                        classes: element.classList ? Array.from(element.classList) : [],
+                        text: element.innerText ? element.innerText.slice(0, 100) : null,
                         children: Array.from(element.children)
                             .map(child => getElementInfo(child, depth + 1))
                             .filter(Boolean)
