@@ -62,6 +62,17 @@ class WebScraper:
         except Exception as e:
             self.logger.error(f"Error waiting for page load: {str(e)}")
 
+    def wait_for_full_page_load(self):
+        """Wait for all network requests to finish and the page to be fully loaded"""
+        try:
+            self.page.wait_for_load_state("load", timeout=30000)
+            self.page.wait_for_load_state("networkidle", timeout=30000)
+            self.logger.info("Full page load completed successfully")
+        except PlaywrightTimeout:
+            self.logger.warning("Timeout while waiting for full page load")
+        except Exception as e:
+            self.logger.error(f"Error waiting for full page load: {str(e)}")
+
     def login(self, url: str, credentials: Dict[str, str], 
               selectors: Dict[str, str]) -> bool:
         try:
@@ -134,19 +145,64 @@ class WebScraper:
 
     def parse_stocks_from_text(self, text_content: str) -> dict:
         """Parse stock information"""
-        # Stub function - Implementation removed as requested
-        return {}
+        stocks = {}
+        try:
+            lines = [line.strip() for line in text_content.split('\n') if line.strip()]
+            
+            current_stock = None
+            data_keys = [
+                'price', 'change_percent', 'type', 'est_return', 'est_max_drawdown',
+                'allocation', 'shares', 'total_change', 'cost_basis', 'total_value'
+            ]
+            data_index = 0
+            for line in lines:
+                if line.isupper() and len(line) <= 5:  # Assuming stock symbols are uppercase and short
+                    current_stock = line
+                    stocks[current_stock] = {}
+                    data_index = 0
+                elif current_stock:
+                    if data_index < len(data_keys):
+                        key = data_keys[data_index]
+                        if key == 'price' or key == 'cost_basis' or key == 'total_value':
+                            if line.startswith('$'):
+                                stocks[current_stock][key] = float(line.replace('$', '').replace(',', ''))
+                                data_index += 1
+                        elif key == 'change_percent' or key == 'total_change':
+                            if '%' in line:
+                                stocks[current_stock][key] = line
+                                data_index += 1
+                        elif key == 'allocation':
+                            if '%' in line:
+                                stocks[current_stock][key] = line
+                                data_index += 1
+                        elif key == 'shares':
+                            try:
+                                stocks[current_stock][key] = float(line)
+                                data_index += 1
+                            except ValueError:
+                                continue
+                        elif key == 'type' or key == 'est_return' or key == 'est_max_drawdown':
+                            stocks[current_stock][key] = line
+                            data_index += 1
+        except Exception as e:
+            self.logger.error(f"Error parsing stocks: {str(e)}")
+        
+        return stocks
 
     def scrape_fool_premium_stocks(self):
         """Navigate to Fool Premium Stocks page and extract content"""
         try:
             target_url = "https://www.fool.com/premium/my-stocks"
             self.page.goto(target_url, wait_until="domcontentloaded")
-            self.wait_for_page_load()
-            self.capture_page_content()
+            self.wait_for_full_page_load()
+            text_content = self.capture_page_content()
+            if text_content:
+                stocks_data = self.parse_stocks_from_text(text_content)
+                output_folder = 'extracted_content'
+                with open(os.path.join(output_folder, 'stocks_data.json'), 'w', encoding='utf-8') as f:
+                    json.dump(stocks_data, f, indent=2)
             
             # Take a screenshot of the final page
-            output_folder = 'extracted_content'
             screenshot_path = os.path.join(output_folder, 'final_page_screenshot.png')
             self.page.screenshot(path=screenshot_path)
             self.logger.info(f"Screenshot saved to {screenshot_path}")
