@@ -42,9 +42,9 @@ class WebScraper:
             )
             
             # Enable request interception to block unnecessary resources
-            self.context.route("**/*.{png,jpg,jpeg,gif,svg,css,font,woff,woff2}", lambda route: route.abort())
-            self.context.route("**/analytics.js", lambda route: route.abort())
-            self.context.route("**/gtm.js", lambda route: route.abort())
+            # self.context.route("**/*.{png,jpg,jpeg,gif,svg,css,font,woff,woff2}", lambda route: route.abort())
+            # self.context.route("**/analytics.js", lambda route: route.abort())
+            # self.context.route("**/gtm.js", lambda route: route.abort())
             
             self.page = self.context.new_page()
             self.logger.info("Browser session started successfully")
