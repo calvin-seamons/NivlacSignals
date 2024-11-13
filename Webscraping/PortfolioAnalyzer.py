@@ -28,7 +28,9 @@ class PortfolioAnalyzer:
             'Portfolio Summary': self.get_portfolio_summary(),
             'Market Metrics': self.calculate_market_metrics(),
             'Sector Exposure': self.get_sector_exposure(),
-            'Risk Metrics': self.get_risk_metrics_report()
+            'Risk Metrics': self.get_risk_metrics_report(),
+            'Position Risk Analysis': self.calculate_position_risk(),  # Add this
+            'Sharpe Ratio Analysis': self.analyze_sharpe_ratio()      # Add this
         }
         
         # Generate and save all plots
@@ -37,14 +39,15 @@ class PortfolioAnalyzer:
         plot_messages.append(self.plot_performance_comparison())
         plot_messages.append(self.plot_correlation_matrix())
         
-        # Save report to CSV
-        report_path = self.output_dir / 'portfolio_analysis_report.csv'
-        pd.DataFrame(report['Market Metrics']).to_csv(report_path)
+        # Save reports to CSV
+        base_path = self.output_dir
+        pd.DataFrame(report['Market Metrics']).to_csv(base_path / 'market_metrics.csv')
+        report['Position Risk Analysis'].to_csv(base_path / 'position_risk_analysis.csv')
         
         return {
             'report': report,
             'plot_messages': plot_messages,
-            'report_path': report_path
+            'report_path': base_path
         }
 
     def _fetch_stock_data(self):
@@ -385,8 +388,154 @@ class PortfolioAnalyzer:
             print(f"Error saving plot {name}: {e}")
             plt.close()
             return None
+        
+    def calculate_position_risk(self):
+        """Calculate risk metrics for each position using multiple factors."""
+        position_risks = {}
+        total_value = sum(self.portfolio[symbol]['total_value'] for symbol in self.portfolio)
+        
+        for symbol, stock_data in self.stock_data.items():
+            if symbol not in self.portfolio:
+                continue
+                
+            try:
+                hist = stock_data['history']
+                if hist.empty:
+                    continue
+                    
+                # Calculate various risk factors
+                returns = hist['Close'].pct_change().dropna()
+                position_value = self.portfolio[symbol]['total_value']
+                weight = position_value / total_value
+                
+                # 1. Volatility (annualized)
+                volatility = returns.std() * np.sqrt(252)
+                
+                # 2. Beta (market sensitivity)
+                beta = self._calculate_beta(returns)
+                
+                # 3. Position concentration risk
+                concentration_risk = weight
+                
+                # 4. Drawdown risk
+                rolling_max = hist['Close'].rolling(window=252, min_periods=1).max()
+                drawdown = (hist['Close'] - rolling_max) / rolling_max
+                max_drawdown = abs(drawdown.min())
+                
+                # 5. Value at Risk (95% confidence)
+                var_95 = np.percentile(returns, 5) * position_value
+                
+                # Combine risk factors into a composite risk score
+                # Higher weights are given to volatility and concentration for large positions
+                risk_score = (
+                    0.3 * volatility +      # Volatility component
+                    0.2 * abs(beta) +       # Market sensitivity
+                    0.3 * concentration_risk + # Position size risk
+                    0.2 * max_drawdown      # Historical drawdown risk
+                )
+                
+                position_risks[symbol] = {
+                    'symbol': symbol,
+                    'value': position_value,
+                    'weight': weight * 100,  # Convert to percentage
+                    'volatility': volatility * 100,  # Convert to percentage
+                    'beta': beta,
+                    'max_drawdown': max_drawdown * 100,  # Convert to percentage
+                    'daily_var_95': var_95,
+                    'risk_score': risk_score * 100,  # Convert to percentage
+                }
+                
+            except Exception as e:
+                print(f"Error calculating risk for {symbol}: {e}")
+                continue
+        
+        # Convert to DataFrame for easier analysis
+        risk_df = pd.DataFrame.from_dict(position_risks, orient='index')
+        
+        # Sort by risk score
+        risk_df = risk_df.sort_values('risk_score', ascending=False)
+        
+        return risk_df
+
+    def analyze_sharpe_ratio(self):
+        """Detailed analysis of portfolio Sharpe ratio components."""
+        portfolio_returns = []
+        portfolio_weights = []
+        total_value = sum(self.portfolio[symbol]['total_value'] for symbol in self.portfolio)
+        
+        # Calculate annualized returns and risks for each position
+        for symbol, stock_data in self.stock_data.items():
+            if symbol not in self.portfolio:
+                continue
+                
+            try:
+                hist = stock_data['history']
+                if hist.empty:
+                    continue
+                    
+                returns = hist['Close'].pct_change().dropna()
+                weight = self.portfolio[symbol]['total_value'] / total_value
+                
+                # Annualize returns
+                annual_return = (1 + returns.mean())**252 - 1
+                
+                portfolio_returns.append(annual_return)
+                portfolio_weights.append(weight)
+                
+            except Exception as e:
+                print(f"Error calculating returns for {symbol}: {e}")
+                continue
+        
+        if not portfolio_returns:
+            return None
+            
+        # Convert to numpy arrays
+        weights = np.array(portfolio_weights)
+        returns = np.array(portfolio_returns)
+        
+        # Calculate portfolio metrics
+        portfolio_return = np.sum(returns * weights)
+        
+        # Calculate portfolio volatility
+        volatilities = []
+        for symbol, stock_data in self.stock_data.items():
+            if symbol not in self.portfolio:
+                continue
+            hist = stock_data['history']
+            if not hist.empty:
+                volatilities.append(hist['Close'].pct_change().std() * np.sqrt(252))
+        
+        portfolio_volatility = np.sqrt(np.sum((weights * volatilities) ** 2))
+        
+        # Risk-free rate (using current 1-year Treasury rate as approximate)
+        risk_free_rate = 0.05  # 5% - Update this based on current rates
+        
+        # Calculate Sharpe Ratio
+        sharpe_ratio = (portfolio_return - risk_free_rate) / portfolio_volatility
+        
+        return {
+            'Portfolio Annual Return': f"{portfolio_return*100:.2f}%",
+            'Portfolio Volatility': f"{portfolio_volatility*100:.2f}%",
+            'Risk-Free Rate': f"{risk_free_rate*100:.2f}%",
+            'Sharpe Ratio': f"{sharpe_ratio:.2f}",
+            'Interpretation': self._interpret_sharpe_ratio(sharpe_ratio)
+        }
+
+    def _interpret_sharpe_ratio(self, sharpe_ratio):
+        """Provide interpretation of the Sharpe ratio value."""
+        if sharpe_ratio < 0:
+            return "Poor - Portfolio is underperforming the risk-free rate"
+        elif sharpe_ratio < 0.5:
+            return "Below Average - Risk-adjusted returns need improvement"
+        elif sharpe_ratio < 1:
+            return "Average - Acceptable but could be improved"
+        elif sharpe_ratio < 2:
+            return "Good - Portfolio is delivering good risk-adjusted returns"
+        elif sharpe_ratio < 3:
+            return "Very Good - Portfolio is delivering strong risk-adjusted returns"
+        else:
+            return "Excellent - Portfolio is delivering exceptional risk-adjusted returns"
     
-# Example usage:
 if __name__ == "__main__":
     # Use Path for cross-platform compatibility
     file_path = Path("Webscraping/extracted_content/stocks_data.json")
@@ -408,9 +557,18 @@ if __name__ == "__main__":
     print("\nRisk Metrics:")
     print(results['report']['Risk Metrics'])
     
+    print("\nDetailed Position Risk Analysis:")
+    print(results['report']['Position Risk Analysis'])
+    
+    print("\nSharpe Ratio Analysis:")
+    sharpe_analysis = results['report']['Sharpe Ratio Analysis']
+    if sharpe_analysis:
+        for key, value in sharpe_analysis.items():
+            print(f"{key}: {value}")
+    
     # Print plot locations
     print("\nGenerated Plots:")
     for message in results['plot_messages']:
         print(message)
     
-    print(f"\nDetailed report saved to: {results['report_path']}")
+    print(f"\nDetailed reports saved to: {results['report_path']}")
