@@ -1,4 +1,4 @@
-Total Return: 6.52%
-Final Portfolio Value: $10,652,192.98
-Sharpe Ratio: 0.6933422974562244
-Max Drawdown: 223.50%
+Total Return: -16.99%
+Final Portfolio Value: $8,301,222.39
+Sharpe Ratio: -0.8242679934492523
+Max Drawdown: 1851.08%
