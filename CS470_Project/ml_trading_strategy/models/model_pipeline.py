@@ -15,8 +15,9 @@ from catboost import CatBoost, Pool
 import shap
 
 from config.settings import (
-    MODEL_TYPE, TRAIN_TEST_SPLIT, VALIDATION_SIZE, 
-    LOOKBACK_PERIODS, TARGET_HORIZON
+    MODEL_PARAMS, TRAIN_PARAMS, FEATURE_PARAMS, 
+    EVALUATION_METRICS, PERFORMANCE_THRESHOLDS,
+    DEFAULT_MODEL_TYPE
 )
 from config.logging_config import get_logger
 
@@ -26,60 +27,35 @@ class ModelPipelineError(Exception):
 
 class ModelPipeline:
     def __init__(
-        self,
-        model_type: str = MODEL_TYPE,
-        model_params: Optional[dict] = None,
-        validation_size: float = VALIDATION_SIZE
+    self,
+    model_type: str = DEFAULT_MODEL_TYPE,
+    model_params: Optional[dict] = None,
+    train_params: Optional[dict] = None
     ):
         """
         Initialize model pipeline
         
         Args:
-            model_type: Type of model to use ('lightgbm', 'xgboost', 'catboost')
-            model_params: Model hyperparameters
-            validation_size: Size of validation set
+            model_type: Type of model from settings.DEFAULT_MODEL_TYPE
+            model_params: Override default MODEL_PARAMS if provided
+            train_params: Override default TRAIN_PARAMS if provided
         """
         self.logger = get_logger(self.__class__.__name__)
         self.model_type = model_type.lower()
-        self.validation_size = validation_size
+        
+        # Use settings or override with provided params
+        self.model_params = model_params or MODEL_PARAMS[self.model_type]
+        self.train_params = train_params or TRAIN_PARAMS
+        
+        # Initialize from settings
+        self.feature_params = FEATURE_PARAMS
+        self.evaluation_metrics = EVALUATION_METRICS
+        self.performance_thresholds = PERFORMANCE_THRESHOLDS
+        
+        # Initialize model and storage
         self.model = None
         self.feature_importance = None
-        
-        # Set default parameters based on model type
-        self.model_params = model_params or self._get_default_params()
-
-    def _get_default_params(self) -> dict:
-        """Get default parameters for selected model type"""
-        if self.model_type == 'lightgbm':
-            return {
-                'objective': 'regression',
-                'metric': 'rmse',
-                'boosting_type': 'gbdt',
-                'num_leaves': 31,
-                'learning_rate': 0.05,
-                'feature_fraction': 0.9,
-                'n_estimators': 100,
-                'early_stopping_rounds': 50
-            }
-        elif self.model_type == 'xgboost':
-            return {
-                'objective': 'reg:squarederror',
-                'eval_metric': 'rmse',
-                'max_depth': 6,
-                'learning_rate': 0.05,
-                'n_estimators': 100,
-                'early_stopping_rounds': 50
-            }
-        elif self.model_type == 'catboost':
-            return {
-                'loss_function': 'RMSE',
-                'iterations': 100,
-                'learning_rate': 0.05,
-                'depth': 6,
-                'early_stopping_rounds': 50
-            }
-        else:
-            raise ModelPipelineError(f"Unsupported model type: {self.model_type}")
+        self.validation_metrics = {}
 
     def create_time_series_splits(
         self,
@@ -120,18 +96,7 @@ class ModelPipeline:
         X_val: Optional[np.ndarray] = None,
         y_val: Optional[np.ndarray] = None
     ) -> Dict:
-        """
-        Train the model
-        
-        Args:
-            X_train: Training features
-            y_train: Training targets
-            X_val: Validation features
-            y_val: Validation targets
-            
-        Returns:
-            Dictionary of training metrics
-        """
+        """Train the model"""
         try:
             self._initialize_model()
             
@@ -140,13 +105,20 @@ class ModelPipeline:
                 eval_set.append((X_val, y_val))
 
             if self.model_type == 'lightgbm':
-                self.model.fit(
-                    X_train, y_train,
-                    eval_set=eval_set,
-                    verbose=False
-                )
+                fit_params = {
+                    'eval_set': eval_set,
+                    'callbacks': [lgb.early_stopping(
+                        stopping_rounds=self.model_params.get('early_stopping_rounds', 50),
+                        verbose=False
+                    )]
+                }
+                self.model.fit(X_train, y_train, **fit_params)
                 
             elif self.model_type == 'xgboost':
+                eval_set = [(X_train, y_train)]
+                if X_val is not None and y_val is not None:
+                    eval_set.append((X_val, y_val))
+                
                 self.model.fit(
                     X_train, y_train,
                     eval_set=eval_set,
@@ -156,6 +128,7 @@ class ModelPipeline:
             elif self.model_type == 'catboost':
                 train_pool = Pool(X_train, y_train)
                 val_pool = Pool(X_val, y_val) if X_val is not None else None
+                
                 self.model.fit(
                     train_pool,
                     eval_set=val_pool,
@@ -175,6 +148,20 @@ class ModelPipeline:
         """Generate predictions"""
         if self.model is None:
             raise ModelPipelineError("Model not trained. Call train() first.")
+            
+        # Check input dimensions
+        expected_features = self.model.n_features_in_
+        if X.ndim == 1:
+            if len(X) != expected_features:
+                raise ModelPipelineError(
+                    f"Input has {len(X)} features but model expects {expected_features} features"
+                )
+            X = X.reshape(1, -1)
+        elif X.shape[1] != expected_features:
+            raise ModelPipelineError(
+                f"Input has {X.shape[1]} features but model expects {expected_features} features"
+            )
+            
         return self.model.predict(X)
 
     def _calculate_feature_importance(self):
@@ -197,28 +184,6 @@ class ModelPipeline:
                 )
         except Exception as e:
             self.logger.warning(f"Error calculating feature importance: {e}")
-
-    def calculate_metrics(
-        self,
-        y_true: np.ndarray,
-        y_pred: np.ndarray
-    ) -> Dict[str, float]:
-        """
-        Calculate performance metrics
-        
-        Args:
-            y_true: True values
-            y_pred: Predicted values
-            
-        Returns:
-            Dictionary of metrics
-        """
-        return {
-            'mse': mean_squared_error(y_true, y_pred),
-            'rmse': np.sqrt(mean_squared_error(y_true, y_pred)),
-            'mae': mean_absolute_error(y_true, y_pred),
-            'r2': r2_score(y_true, y_pred)
-        }
 
     def calculate_shap_values(self, X: np.ndarray) -> np.ndarray:
         """Calculate SHAP values for feature importance"""
@@ -263,3 +228,160 @@ class ModelPipeline:
                 self.model.load_model(path)
         except Exception as e:
             raise ModelPipelineError(f"Error loading model: {e}")
+        
+    def calculate_metrics(
+        self,
+        y_true: np.ndarray,
+        y_pred: np.ndarray,
+        returns: Optional[np.ndarray] = None
+    ) -> Dict[str, float]:
+        """
+        Calculate comprehensive performance metrics for model evaluation
+        """
+        try:
+            # Ensure arrays are the correct shape
+            y_true = y_true.reshape(-1)
+            y_pred = y_pred.reshape(-1)
+            
+            metrics = {}
+            
+            # Basic regression metrics
+            metrics.update({
+                'mse': mean_squared_error(y_true, y_pred),
+                'rmse': np.sqrt(mean_squared_error(y_true, y_pred)),
+                'mae': mean_absolute_error(y_true, y_pred),
+                'r2': r2_score(y_true, y_pred)
+            })
+            
+            # Directional accuracy (ensure binary classification)
+            y_true_direction = np.where(y_true > 0, 1, 0)
+            y_pred_direction = np.where(y_pred > 0, 1, 0)
+            
+            metrics.update({
+                'directional_accuracy': accuracy_score(y_true_direction, y_pred_direction),
+                'precision': precision_score(y_true_direction, y_pred_direction, 
+                                        average='binary', zero_division=0),
+                'recall': recall_score(y_true_direction, y_pred_direction, 
+                                    average='binary', zero_division=0)
+            })
+            
+            if returns is not None:
+                # Ensure returns is 1D
+                returns = returns.reshape(-1)
+                
+                # Calculate strategy returns
+                strategy_returns = np.where(y_pred > 0, returns, -returns)
+                
+                # Trading metrics calculations
+                metrics.update(self._calculate_trading_metrics(strategy_returns))
+            
+            return metrics
+            
+        except Exception as e:
+            self.logger.error(f"Error calculating metrics: {e}")
+            raise ModelPipelineError(f"Error calculating metrics: {e}")
+
+    def _calculate_trading_metrics(self, strategy_returns: np.ndarray) -> Dict[str, float]:
+        """Helper function to calculate trading-specific metrics"""
+        metrics = {}
+        
+        try:
+            # Sharpe Ratio (annualized)
+            sharpe = np.sqrt(252) * strategy_returns.mean() / strategy_returns.std() if len(strategy_returns) > 1 else 0
+            
+            # Cumulative returns
+            cumulative_returns = (1 + strategy_returns).cumprod()
+            
+            # Maximum Drawdown
+            running_max = np.maximum.accumulate(cumulative_returns)
+            drawdowns = cumulative_returns / running_max - 1
+            max_drawdown = drawdowns.min()
+            
+            # Hit Ratio
+            profitable_trades = np.sum(strategy_returns > 0)
+            total_trades = len(strategy_returns)
+            hit_ratio = profitable_trades / total_trades if total_trades > 0 else 0
+            
+            # Profit Factor
+            gross_profits = np.sum(strategy_returns[strategy_returns > 0])
+            gross_losses = abs(np.sum(strategy_returns[strategy_returns < 0]))
+            profit_factor = gross_profits / gross_losses if gross_losses != 0 else float('inf')
+            
+            metrics.update({
+                'sharpe_ratio': sharpe,
+                'max_drawdown': max_drawdown,
+                'hit_ratio': hit_ratio,
+                'profit_factor': profit_factor,
+                'total_trades': total_trades,
+                'avg_return': strategy_returns.mean(),
+                'return_std': strategy_returns.std() if len(strategy_returns) > 1 else 0,
+                'cumulative_return': cumulative_returns[-1] - 1 if len(cumulative_returns) > 0 else 0
+            })
+            
+        except Exception as e:
+            self.logger.warning(f"Error calculating trading metrics: {e}")
+            
+        return metrics
+
+    def evaluate_model(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        returns: Optional[np.ndarray] = None
+    ) -> Dict[str, float]:
+        """
+        Comprehensive model evaluation
+        
+        Args:
+            X: Feature matrix (must have same number of features as training data)
+            y: True values
+            returns: Optional returns for financial metrics
+        """
+        try:
+            # Check feature dimensions
+            if self.model is None:
+                raise ModelPipelineError("Model not trained. Call train() first.")
+                
+            expected_features = self.model.n_features_in_  # Get expected number of features
+            
+            # Ensure X is 2D with correct number of features
+            if X.ndim == 1:
+                if len(X) != expected_features:
+                    raise ModelPipelineError(
+                        f"Input has {len(X)} features but model expects {expected_features} features"
+                    )
+                X = X.reshape(1, -1)
+            elif X.shape[1] != expected_features:
+                raise ModelPipelineError(
+                    f"Input has {X.shape[1]} features but model expects {expected_features} features"
+                )
+                
+            # Generate predictions
+            predictions = self.predict(X)
+            
+            # Ensure y and predictions are the right shape
+            y = y.reshape(-1)
+            predictions = predictions.reshape(-1)
+            
+            if returns is not None:
+                returns = returns.reshape(-1)
+            
+            # Calculate metrics
+            metrics = self.calculate_metrics(y, predictions, returns)
+            
+            # Store metrics
+            self.validation_metrics = metrics
+            
+            # Log key metrics
+            self.logger.info("Model Evaluation Results:")
+            for metric, value in metrics.items():
+                if isinstance(value, (int, float)):
+                    self.logger.info(f"{metric}: {value:.4f}")
+                else:
+                    self.logger.info(f"{metric}: {value}")
+                
+            return metrics
+            
+        except Exception as e:
+            self.logger.error(f"Error evaluating model: {e}")
+            raise ModelPipelineError(f"Error evaluating model: {e}")

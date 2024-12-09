@@ -1,4 +1,4 @@
-# settings.py structure
+# settings.py
 
 """
 Configuration settings for ML trading strategy
@@ -18,114 +18,130 @@ MODEL_DIR = os.path.join(BASE_DIR, 'models')
 RESULTS_DIR = os.path.join(BASE_DIR, 'results')
 
 #############################################
-# DATA SETTINGS
+# MODEL PIPELINE SETTINGS
 #############################################
-# Time periods
-TRAINING_START_DATE = datetime(2010, 1, 1)
-TRAINING_END_DATE = datetime(2020, 12, 31)
-VALIDATION_START_DATE = datetime(2021, 1, 1)
-VALIDATION_END_DATE = datetime(2021, 12, 31)
-BACKTEST_START_DATE = datetime(2022, 1, 1)
-BACKTEST_END_DATE = datetime(2023, 12, 31)
+# Model Selection
+DEFAULT_MODEL_TYPE = 'lightgbm'  # Options: 'lightgbm', 'xgboost', 'catboost'
+MODEL_SAVE_PATH = os.path.join(MODEL_DIR, 'saved_models')
 
-# Data parameters
-UNIVERSE_SIZE = 500  # Number of stocks to consider
-MIN_PRICE = 5.0  # Minimum stock price filter
-MIN_MARKET_CAP = 1e9  # Minimum market cap filter
-MIN_VOLUME = 100000  # Minimum daily volume filter
-LOOKBACK_PERIOD = 252  # Days of historical data for features
-
-#############################################
-# FEATURE ENGINEERING SETTINGS
-#############################################
-# Technical indicators to generate
-TECHNICAL_INDICATORS = {
-    'RSI': [14, 30],  # [period, oversold_threshold]
-    'MACD': [12, 26, 9],  # [fast, slow, signal]
-    'BB': [20, 2],  # [period, std_dev]
-    'MA': [50, 200]  # Moving average periods
-}
-
-# Feature generation parameters
-FEATURE_PARAMETERS = {
-    'price_features': ['returns', 'volatility', 'momentum'],
-    'volume_features': ['volume_ma', 'volume_std'],
-    'market_features': ['spy_correlation', 'sector_momentum'],
-    'fundamental_features': ['pe_ratio', 'pb_ratio', 'debt_to_equity']
-}
-
-#############################################
-# ML MODEL SETTINGS
-#############################################
-# Model hyperparameters
+# Model Parameters by Type
 MODEL_PARAMS = {
-    'xgboost': {
-        'max_depth': 6,
-        'learning_rate': 0.1,
-        'n_estimators': 100,
-        'objective': 'reg:squarederror'
-    },
     'lightgbm': {
+        'objective': 'regression',
+        'metric': 'rmse',
+        'boosting_type': 'gbdt',
         'num_leaves': 31,
-        'learning_rate': 0.1,
-        'n_estimators': 100
+        'learning_rate': 0.05,
+        'colsample_bytree': 0.9,  # Changed from feature_fraction
+        'n_estimators': 100,
+        'early_stopping_rounds': 50,
+        'force_col_wise': True,
+        'verbose': -1
     },
-    'neural_network': {
-        'layers': [64, 32, 16],
-        'dropout': 0.2,
-        'learning_rate': 0.001
+    'xgboost': {
+        'objective': 'reg:squarederror',
+        'eval_metric': 'rmse',
+        'max_depth': 6,
+        'learning_rate': 0.05,
+        'n_estimators': 100,
+        'early_stopping_rounds': 50
+    },
+    'catboost': {
+        'loss_function': 'RMSE',
+        'iterations': 100,
+        'learning_rate': 0.05,
+        'depth': 6,
+        'early_stopping_rounds': 50
     }
 }
 
-# Training parameters
+# Training Parameters
 TRAIN_PARAMS = {
     'train_test_split': 0.8,
     'validation_size': 0.2,
+    'cv_folds': 5,
     'random_state': 42,
-    'cv_folds': 5
+    'shuffle': False  # Important for time series data
+}
+
+# Feature Engineering Parameters for Model
+FEATURE_PARAMS = {
+    'lookback_windows': [5, 10, 20, 60],  # Days for rolling features
+    'target_horizon': 5,  # Prediction horizon in days
+    'min_training_size': 252  # Minimum days required for training
+}
+
+# Model Evaluation Metrics
+EVALUATION_METRICS = [
+    'mse',
+    'rmse',
+    'mae',
+    'r2',
+    'sharpe_ratio',
+    'hit_ratio'
+]
+
+# Model Performance Thresholds
+PERFORMANCE_THRESHOLDS = {
+    'min_r2': 0.1,
+    'min_sharpe': 0.5,
+    'max_drawdown': -0.2,
+    'min_hit_ratio': 0.52
+}
+
+# Feature Importance Analysis
+FEATURE_IMPORTANCE = {
+    'use_shap': True,
+    'top_n_features': 20,
+    'importance_threshold': 0.01
 }
 
 #############################################
-# STRATEGY SETTINGS
+# MODEL OPTIMIZATION SETTINGS
 #############################################
-# Portfolio constraints
-MAX_POSITIONS = 50
-MAX_POSITION_SIZE = 0.05  # 5% max in single position
-MAX_SECTOR_EXPOSURE = 0.25  # 25% max in single sector
-MIN_HOLDING_PERIOD = 5  # trading days
-MAX_HOLDING_PERIOD = 60  # trading days
-
-# Risk management
-STOP_LOSS = 0.05  # 5% stop loss
-TAKE_PROFIT = 0.15  # 15% take profit
-MAX_DRAWDOWN_LIMIT = 0.20  # 20% max drawdown
-
-# Trading parameters
-INITIAL_CAPITAL = 1_000_000
-COMMISSION_RATE = 0.001  # 0.1% commission per trade
-SLIPPAGE = 0.0005  # 5 bps slippage
-REBALANCE_FREQUENCY = 5  # trading days
-
-#############################################
-# BACKTESTING SETTINGS
-#############################################
-# Backtest parameters
-BENCHMARK_INDEX = 'SPY'
-RISK_FREE_RATE = 0.02  # Annual risk-free rate
-POSITION_SIZING_METHOD = 'equal_weight'  # or 'kelly_criterion' or 'ml_confidence'
-
-# Performance metrics to track
-PERFORMANCE_METRICS = [
-    'sharpe_ratio',
-    'sortino_ratio',
-    'max_drawdown',
-    'win_rate',
-    'profit_factor',
-    'calmar_ratio'
-]
+HYPEROPT_PARAMS = {
+    'lightgbm': {
+        'n_trials': 100,
+        'timeout': 3600,
+        'param_space': {
+            'num_leaves': (15, 50),
+            'learning_rate': (0.01, 0.1),
+            'feature_fraction': (0.7, 1.0),
+            'n_estimators': (50, 200)
+        }
+    },
+    'xgboost': {
+        'n_trials': 100,
+        'timeout': 3600,
+        'param_space': {
+            'max_depth': (3, 10),
+            'learning_rate': (0.01, 0.1),
+            'n_estimators': (50, 200)
+        }
+    }
+}
 
 #############################################
-# LOGGING AND DEBUG SETTINGS
+# MODEL VALIDATION SETTINGS
+#############################################
+VALIDATION_PARAMS = {
+    'rolling_window_size': 252,  # Days for rolling validation
+    'min_training_samples': 1000,
+    'validation_metric': 'sharpe_ratio',
+    'refit_frequency': 20  # Trading days between model refits
+}
+
+#############################################
+# PREDICTION SETTINGS
+#############################################
+PREDICTION_PARAMS = {
+    'confidence_threshold': 0.6,  # Minimum prediction confidence
+    'prediction_frequency': 1,  # Days between predictions
+    'ensemble_weighting': 'equal'  # or 'dynamic'
+}
+
+#############################################
+# LOGGING SETTINGS
 #############################################
 # Logging configuration
 LOG_LEVEL = 'INFO'
@@ -137,42 +153,3 @@ DEBUG_MODE = True
 SAVE_PREDICTIONS = True
 SAVE_POSITIONS = True
 PLOT_RESULTS = True
-
-#############################################
-# API AND DATABASE SETTINGS
-#############################################
-# Data source configurations
-DATA_SOURCE = {
-    'primary': 'yahoo_finance',
-    'backup': 'alpha_vantage',
-    'api_keys': {
-        'alpha_vantage': 'your_key_here',
-        'polygon': 'your_key_here'
-    }
-}
-
-# Database settings
-DATABASE = {
-    'host': 'localhost',
-    'port': 5432,
-    'name': 'ml_trading',
-    'user': 'your_user',
-    'password': 'your_password'
-}
-
-#############################################
-# OPTIMIZATION SETTINGS
-#############################################
-# Hyperparameter optimization
-OPTIMIZATION_PARAMS = {
-    'n_trials': 100,
-    'timeout': 3600,  # seconds
-    'optimization_metric': 'sharpe_ratio'
-}
-
-# Walk-forward optimization
-WALK_FORWARD_PARAMS = {
-    'window_size': 252,  # trading days
-    'step_size': 63,    # trading days
-    'min_training_size': 756  # trading days
-}
