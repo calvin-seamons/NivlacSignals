@@ -21,7 +21,7 @@ RESULTS_DIR = os.path.join(BASE_DIR, 'results')
 # MODEL PIPELINE SETTINGS
 #############################################
 # Model Selection
-DEFAULT_MODEL_TYPE = 'lightgbm'  # Options: 'lightgbm', 'xgboost', 'catboost'
+DEFAULT_MODEL_TYPE = 'xgboost'  # Options: 'lightgbm', 'xgboost', 'catboost'
 MODEL_SAVE_PATH = os.path.join(MODEL_DIR, 'saved_models')
 
 # Model Parameters by Type

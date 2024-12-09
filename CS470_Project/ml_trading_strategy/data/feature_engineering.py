@@ -14,6 +14,7 @@ class FeatureEngineering:
     def __init__(self, price_col: str = 'Close'):
         self.logger = get_logger(self.__class__.__name__)
         self.price_col = price_col
+        self.lookback_window = 20
 
     def calculate_basic_features(self, df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -98,38 +99,147 @@ class FeatureEngineering:
     def prepare_features_for_training(self, 
                                     data: Dict[str, pd.DataFrame],
                                     lookback_window: int = 20,
-                                    forecast_horizon: int = 5) -> tuple[np.ndarray, np.ndarray]:
+                                    forecast_horizon: int = 5) -> tuple[pd.DataFrame, pd.Series]:
         """
-        Prepare final feature matrix and target vector for ML training
+        Prepare final feature matrix and target vector for ML training with improved validation
+        and normalization.
+        
+        Args:
+            data: Dictionary of DataFrames with price/volume data
+            lookback_window: Number of past days to use
+            forecast_horizon: Days ahead to predict
+            
+        Returns:
+            Tuple of (features DataFrame, targets Series)
         """
-        features = []
-        targets = []
+        features_list = []
+        targets_list = []
+        dates_list = []
+        symbols_list = []
         
         for symbol, df in data.items():
             try:
+                # Process features
                 processed_data = self.calculate_basic_features(df)
                 processed_data = self.calculate_technical_features(processed_data)
                 processed_data = self.create_ml_features(processed_data, lookback_window)
                 
-                # Create feature vectors
+                # Get feature columns (exclude price and volume)
                 feature_cols = [col for col in processed_data.columns 
-                              if col not in [self.price_col, 'Volume']]
+                            if col not in [self.price_col, 'Volume']]
                 
                 for i in range(lookback_window, len(processed_data) - forecast_horizon):
+                    # Validate data window
                     feature_window = processed_data.iloc[i-lookback_window:i][feature_cols]
                     
-                    # Future return as target
-                    future_return = (
-                        processed_data.iloc[i + forecast_horizon][self.price_col] /
-                        processed_data.iloc[i][self.price_col] - 1
+                    if feature_window.isnull().any().any():
+                        continue
+                        
+                    # Validate and calculate future return
+                    future_return = self._calculate_future_return(
+                        processed_data[self.price_col],
+                        i,
+                        forecast_horizon
                     )
                     
-                    if not feature_window.isnull().any().any():
-                        features.append(feature_window.values.flatten())
-                        targets.append(future_return)
-                        
+                    if future_return is None:
+                        continue
+                    
+                    # Store valid sample
+                    features_list.append(feature_window.values)
+                    targets_list.append(future_return)
+                    dates_list.append(processed_data.index[i])
+                    symbols_list.append(symbol)
+                    
             except Exception as e:
                 self.logger.error(f"Error preparing features for {symbol}: {e}")
                 continue
-                
-        return np.array(features), np.array(targets)
+        
+        if not features_list:
+            raise ValueError("No valid samples generated")
+            
+        # Create features DataFrame with MultiIndex
+        features_array = np.stack(features_list)
+        features_df = pd.DataFrame(
+            features_array.reshape(len(features_list), -1),
+            index=pd.MultiIndex.from_arrays([dates_list, symbols_list], 
+                                        names=['date', 'symbol']),
+            columns=[f"{col}_{t}" for col in feature_cols 
+                    for t in range(lookback_window)]
+        )
+        
+        # Create targets Series
+        targets_series = pd.Series(
+            targets_list,
+            index=features_df.index,
+            name='future_return'
+        )
+        
+        # Apply cross-sectional normalization
+        features_df = self._normalize_features(features_df)
+        
+        return features_df, targets_series
+
+    def _calculate_future_return(self, 
+                            price_series: pd.Series,
+                            current_idx: int,
+                            horizon: int) -> Optional[float]:
+        """
+        Safely calculate future return with validation.
+        """
+        if current_idx + horizon >= len(price_series):
+            return None
+            
+        current_price = price_series.iloc[current_idx]
+        future_price = price_series.iloc[current_idx + horizon]
+        
+        if pd.isna(current_price) or pd.isna(future_price) or current_price <= 0:
+            return None
+            
+        return (future_price / current_price) - 1
+
+    def _normalize_features(self, features_df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Apply cross-sectional normalization to features.
+        
+        Args:
+            features_df: DataFrame with MultiIndex (date, symbol)
+            
+        Returns:
+            Normalized DataFrame
+        """
+        # Group by date and normalize within each date
+        return features_df.groupby(level='date').transform(
+            lambda x: (x - x.mean()) / (x.std() + 1e-8)  # Add epsilon to avoid division by zero
+        )
+    
+    def get_feature_names(self) -> List[str]:
+        """Get list of feature names in order."""
+        feature_names = []
+        
+        # Basic features
+        feature_names.extend([
+            'returns', 'log_returns', 'volatility',
+            'volume_ma', 'volume_std'
+        ])
+        
+        # Technical features
+        feature_names.extend([
+            'sma_10', 'sma_30', 'sma_60',
+            'rsi', 'macd', 'macd_signal'
+        ])
+        
+        # ML features
+        lookback_window = self.lookback_window  # You'll need to store this as an instance variable
+        for lag in range(1, lookback_window + 1):
+            feature_names.extend([
+                f'return_lag_{lag}',
+                f'volume_lag_{lag}'
+            ])
+        
+        feature_names.extend([
+            'return_mean_5d', 'return_std_5d',
+            'volume_mean_5d'
+        ])
+        
+        return feature_names

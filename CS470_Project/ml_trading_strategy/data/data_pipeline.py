@@ -238,28 +238,53 @@ class DataPipeline:
         return self.universe
 
     def get_training_data(self, lookback_window: int = 20, 
-                         forecast_horizon: int = 5,
-                         train_ratio: float = 0.8) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+                        forecast_horizon: int = 5,
+                        train_ratio: float = 0.8) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """
-        Prepare training data for ML model.
+        Prepare training data for ML model with proper time-series splitting.
+        
+        Args:
+            lookback_window: Number of past days to use for features
+            forecast_horizon: Number of days to predict ahead
+            train_ratio: Ratio of data to use for training
+            
+        Returns:
+            Tuple of (X_train, X_test, y_train, y_test)
         """
         if not self.universe:
             raise DataPipelineError("Universe not created. Run create_universe first.")
 
         # Get features and targets using feature engineering class
-        features, targets = self.feature_engineer.prepare_features_for_training(
+        features_df, targets_series = self.feature_engineer.prepare_features_for_training(
             {symbol: self.processed_data[symbol] for symbol in self.universe},
             lookback_window=lookback_window,
             forecast_horizon=forecast_horizon
         )
 
-        # Split into train/test
-        split_idx = int(len(features) * train_ratio)
-        X_train = features[:split_idx]
-        X_test = features[split_idx:]
-        y_train = targets[:split_idx]
-        y_test = targets[split_idx:]
+        # Ensure features and targets have same index
+        if not features_df.index.equals(targets_series.index):
+            raise DataPipelineError("Features and targets indices do not match")
+
+        # Sort the MultiIndex - this is crucial for slicing
+        features_df = features_df.sort_index()
+        targets_series = targets_series.sort_index()
+
+        # Get unique dates and find split point
+        dates = features_df.index.get_level_values('date').unique()
+        split_idx = int(len(dates) * train_ratio)
+        split_date = dates[split_idx]
         
+        # Split the data using the date level
+        X_train = features_df.loc[features_df.index.get_level_values('date') <= split_date].values
+        X_test = features_df.loc[features_df.index.get_level_values('date') > split_date].values
+        y_train = targets_series.loc[targets_series.index.get_level_values('date') <= split_date].values
+        y_test = targets_series.loc[targets_series.index.get_level_values('date') > split_date].values
+        
+        # Log split information
+        self.logger.info(f"Training data from {dates[0]} to {split_date}")
+        self.logger.info(f"Testing data from {split_date} to {dates[-1]}")
+        self.logger.info(f"Training samples: {len(X_train)}, Testing samples: {len(X_test)}")
+
         return X_train, X_test, y_train, y_test
 
     def get_latest_data(self, lookback_window: int = 20) -> pd.DataFrame:

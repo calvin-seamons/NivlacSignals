@@ -42,6 +42,8 @@ class ModelPipeline:
         """
         self.logger = get_logger(self.__class__.__name__)
         self.model_type = model_type.lower()
+
+        self.logger.info(f"Initializing model pipeline with {self.model_type} model")
         
         # Use settings or override with provided params
         self.model_params = model_params or MODEL_PARAMS[self.model_type]
@@ -94,11 +96,18 @@ class ModelPipeline:
         X_train: np.ndarray,
         y_train: np.ndarray,
         X_val: Optional[np.ndarray] = None,
-        y_val: Optional[np.ndarray] = None
+        y_val: Optional[np.ndarray] = None,
+        feature_names: Optional[List[str]] = None
     ) -> Dict:
-        """Train the model"""
+        """
+        Train the model
+        """
         try:
             self._initialize_model()
+            
+            # Generate default feature names if none provided
+            if feature_names is None:
+                feature_names = [f'feature_{i}' for i in range(X_train.shape[1])]
             
             eval_set = [(X_train, y_train)]
             if X_val is not None and y_val is not None:
@@ -107,6 +116,7 @@ class ModelPipeline:
             if self.model_type == 'lightgbm':
                 fit_params = {
                     'eval_set': eval_set,
+                    'feature_name': feature_names,
                     'callbacks': [lgb.early_stopping(
                         stopping_rounds=self.model_params.get('early_stopping_rounds', 50),
                         verbose=False
@@ -115,9 +125,8 @@ class ModelPipeline:
                 self.model.fit(X_train, y_train, **fit_params)
                 
             elif self.model_type == 'xgboost':
-                eval_set = [(X_train, y_train)]
-                if X_val is not None and y_val is not None:
-                    eval_set.append((X_val, y_val))
+                # Set feature names before fitting
+                self.model.feature_names = feature_names
                 
                 self.model.fit(
                     X_train, y_train,
@@ -126,8 +135,8 @@ class ModelPipeline:
                 )
                 
             elif self.model_type == 'catboost':
-                train_pool = Pool(X_train, y_train)
-                val_pool = Pool(X_val, y_val) if X_val is not None else None
+                train_pool = Pool(X_train, y_train, feature_names=feature_names)
+                val_pool = Pool(X_val, y_val, feature_names=feature_names) if X_val is not None else None
                 
                 self.model.fit(
                     train_pool,
