@@ -8,7 +8,8 @@ from pathlib import Path
 import pickle
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from config.setup_logging import setup_logging
+from config.logging_config import get_logger
+from data.feature_engineering import FeatureEngineering
 
 class DataPipelineError(Exception):
     """Custom exception for data pipeline errors"""
@@ -26,7 +27,7 @@ class DataPipeline:
         universe_size: int = 500,
         cache_dir: Optional[str] = None,
         min_volume: float = 1e6,
-        price_col: str = 'Adj Close'
+        price_col: str = 'Close'
     ):
         """
         Initialize DataPipeline.
@@ -40,7 +41,9 @@ class DataPipeline:
             price_col: Column to use for price data
         """
         # Setup logger
-        self.logger = setup_logging()
+        self.logger = get_logger(self.__class__.__name__)
+
+        self.feature_engineer = FeatureEngineering(price_col=price_col)
 
         # Convert dates if they're strings
         self.start_date = pd.to_datetime(start_date)
@@ -150,9 +153,6 @@ class DataPipeline:
     def process_data(self) -> None:
         """
         Process raw data into format suitable for ML.
-        - Handles missing data
-        - Calculates returns
-        - Ensures data alignment
         """
         self.logger.info(f"Starting data processing with {len(self.raw_data)} symbols")
         if not self.raw_data:
@@ -161,32 +161,11 @@ class DataPipeline:
         # Process each symbol
         for symbol, data in self.raw_data.items():
             try:
-                # Create copy for processing
-                df = data.copy()
-                
                 # Handle missing data
-                df = self._handle_missing_data(df)
+                df = self._handle_missing_data(data.copy())
                 
-                # Ensure price column exists
-                if self.price_col not in df.columns:
-                    self.logger.error(f"Price column '{self.price_col}' not found in data for {symbol}")
-                    available_columns = df.columns.tolist()
-                    self.logger.info(f"Available columns: {available_columns}")
-                    if 'Close' in df.columns:
-                        self.logger.info(f"Using 'Close' instead of '{self.price_col}'")
-                        self.price_col = 'Close'
-                    else:
-                        continue
-
-                # Calculate returns
-                df['returns'] = df[self.price_col].pct_change()
-                
-                # Calculate log returns
-                df['log_returns'] = np.log(df[self.price_col] / df[self.price_col].shift(1))
-                
-                # Calculate rolling metrics
-                df['volatility'] = df['returns'].rolling(window=20).std()
-                df['volume_ma'] = df['Volume'].rolling(window=20).mean()
+                # Use feature engineering class for processing
+                df = self.feature_engineer.calculate_basic_features(df)
                 
                 # Store processed data
                 self.processed_data[symbol] = df
@@ -258,59 +237,28 @@ class DataPipeline:
         self.logger.info(f"Created universe with {len(self.universe)} symbols")
         return self.universe
 
-    def get_training_data(
-        self,
-        lookback_window: int = 20,
-        forecast_horizon: int = 5,
-        train_ratio: float = 0.8
-    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    def get_training_data(self, lookback_window: int = 20, 
+                         forecast_horizon: int = 5,
+                         train_ratio: float = 0.8) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """
         Prepare training data for ML model.
-        
-        Args:
-            lookback_window: Number of past days to use as features
-            forecast_horizon: Number of days to forecast
-            train_ratio: Ratio of data to use for training
-            
-        Returns:
-            X_train, X_test, y_train, y_test
         """
         if not self.universe:
             raise DataPipelineError("Universe not created. Run create_universe first.")
 
-        # Prepare features and targets
-        features = []
-        targets = []
-        
-        for symbol in self.universe:
-            data = self.processed_data[symbol]
-            
-            # Create features from lookback window
-            for i in range(lookback_window, len(data) - forecast_horizon):
-                # Feature window
-                feature_window = data.iloc[i-lookback_window:i]
-                
-                # Target (future return)
-                future_return = (
-                    data.iloc[i + forecast_horizon][self.price_col] /
-                    data.iloc[i][self.price_col] - 1
-                )
-                
-                features.append(feature_window[
-                    ['returns', 'volume_ma', 'volatility']
-                ].values.flatten())
-                targets.append(future_return)
+        # Get features and targets using feature engineering class
+        features, targets = self.feature_engineer.prepare_features_for_training(
+            {symbol: self.processed_data[symbol] for symbol in self.universe},
+            lookback_window=lookback_window,
+            forecast_horizon=forecast_horizon
+        )
 
-        # Convert to numpy arrays
-        X = np.array(features)
-        y = np.array(targets)
-        
         # Split into train/test
-        split_idx = int(len(X) * train_ratio)
-        X_train = X[:split_idx]
-        X_test = X[split_idx:]
-        y_train = y[:split_idx]
-        y_test = y[split_idx:]
+        split_idx = int(len(features) * train_ratio)
+        X_train = features[:split_idx]
+        X_test = features[split_idx:]
+        y_train = targets[:split_idx]
+        y_test = targets[split_idx:]
         
         return X_train, X_test, y_train, y_test
 
