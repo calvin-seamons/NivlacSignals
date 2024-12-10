@@ -108,6 +108,9 @@ class ModelPipeline:
             # Generate default feature names if none provided
             if feature_names is None:
                 feature_names = [f'feature_{i}' for i in range(X_train.shape[1])]
+                
+            # Convert feature_names to list if it's not already
+            feature_names = list(feature_names)
             
             eval_set = [(X_train, y_train)]
             if X_val is not None and y_val is not None:
@@ -125,13 +128,21 @@ class ModelPipeline:
                 self.model.fit(X_train, y_train, **fit_params)
                 
             elif self.model_type == 'xgboost':
-                # Set feature names before fitting
-                self.model.feature_names = feature_names
+                # Create DMatrix with feature names
+                dtrain = xgb.DMatrix(X_train, label=y_train, feature_names=feature_names)
+                dval = xgb.DMatrix(X_val, label=y_val, feature_names=feature_names) if X_val is not None else None
                 
-                self.model.fit(
-                    X_train, y_train,
-                    eval_set=eval_set,
-                    verbose=False
+                # Set up watchlist
+                watchlist = [(dtrain, 'train')]
+                if dval is not None:
+                    watchlist.append((dval, 'eval'))
+                
+                # Train model
+                self.model = xgb.train(
+                    self.model_params,
+                    dtrain,
+                    evals=watchlist,
+                    verbose_eval=False
                 )
                 
             elif self.model_type == 'catboost':
@@ -153,26 +164,6 @@ class ModelPipeline:
         except Exception as e:
             raise ModelPipelineError(f"Error during training: {e}")
 
-    def predict(self, X: np.ndarray) -> np.ndarray:
-        """Generate predictions"""
-        if self.model is None:
-            raise ModelPipelineError("Model not trained. Call train() first.")
-            
-        # Check input dimensions
-        expected_features = self.model.n_features_in_
-        if X.ndim == 1:
-            if len(X) != expected_features:
-                raise ModelPipelineError(
-                    f"Input has {len(X)} features but model expects {expected_features} features"
-                )
-            X = X.reshape(1, -1)
-        elif X.shape[1] != expected_features:
-            raise ModelPipelineError(
-                f"Input has {X.shape[1]} features but model expects {expected_features} features"
-            )
-            
-        return self.model.predict(X)
-
     def _calculate_feature_importance(self):
         """Calculate and store feature importance"""
         try:
@@ -182,10 +173,11 @@ class ModelPipeline:
                     index=self.model.feature_name_
                 )
             elif self.model_type == 'xgboost':
+                # For XGBoost, feature importance is stored differently
                 self.feature_importance = pd.Series(
-                    self.model.feature_importances_,
-                    index=self.model.feature_names_in_
-                )
+                    self.model.get_score(importance_type='gain'),
+                    name='importance'
+                ).sort_values(ascending=False)
             elif self.model_type == 'catboost':
                 self.feature_importance = pd.Series(
                     self.model.get_feature_importance(),
@@ -193,6 +185,21 @@ class ModelPipeline:
                 )
         except Exception as e:
             self.logger.warning(f"Error calculating feature importance: {e}")
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        """Generate predictions"""
+        if self.model is None:
+            raise ModelPipelineError("Model not trained. Call train() first.")
+            
+        try:
+            if self.model_type == 'xgboost':
+                # Create DMatrix for prediction
+                dtest = xgb.DMatrix(X)
+                return self.model.predict(dtest)
+            else:
+                return self.model.predict(X)
+        except Exception as e:
+            raise ModelPipelineError(f"Error during prediction: {e}")
 
     def calculate_shap_values(self, X: np.ndarray) -> np.ndarray:
         """Calculate SHAP values for feature importance"""
