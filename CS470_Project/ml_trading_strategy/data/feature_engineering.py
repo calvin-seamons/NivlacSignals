@@ -5,6 +5,7 @@ from datetime import datetime
 import logging
 
 from config.logging_config import get_logger
+from data.data_pipeline import DataPipelineError
 
 class FeatureEngineering:
     """
@@ -17,23 +18,45 @@ class FeatureEngineering:
         self.lookback_window = 20
 
     def calculate_basic_features(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Calculate basic financial features from price data
-        """
+        """Calculate basic financial features from price data"""
         try:
             # Create copy to avoid modifying original
             data = df.copy()
             
+            # First, check if we have all required columns
+            required_columns = ['Open', 'High', 'Low', 'Close', 'Volume']
+            missing_columns = [col for col in required_columns if col not in data.columns]
+            if missing_columns:
+                raise DataPipelineError(f"Missing required columns: {missing_columns}")
+            
             # Price-based features
-            data['returns'] = data[self.price_col].pct_change()
-            data['log_returns'] = np.log(data[self.price_col] / data[self.price_col].shift(1))
+            try:
+                data['returns'] = data['Close'].pct_change()
+            except Exception as e:
+                self.logger.error(f"Error calculating returns: {e}")
+                data['returns'] = np.nan
+                
+            try:
+                data['log_returns'] = np.log(data['Close'] / data['Close'].shift(1))
+            except Exception as e:
+                self.logger.error(f"Error calculating log returns: {e}")
+                data['log_returns'] = np.nan
             
             # Volatility
-            data['volatility'] = data['returns'].rolling(window=20).std()
+            try:
+                data['volatility'] = data['returns'].rolling(window=20).std()
+            except Exception as e:
+                self.logger.error(f"Error calculating volatility: {e}")
+                data['volatility'] = np.nan
             
             # Volume features
-            data['volume_ma'] = data['Volume'].rolling(window=20).mean()
-            data['volume_std'] = data['Volume'].rolling(window=20).std()
+            try:
+                data['volume_ma'] = data['Volume'].rolling(window=20).mean()
+                data['volume_std'] = data['Volume'].rolling(window=20).std()
+            except Exception as e:
+                self.logger.error(f"Error calculating volume features: {e}")
+                data['volume_ma'] = np.nan
+                data['volume_std'] = np.nan
             
             return data
             
