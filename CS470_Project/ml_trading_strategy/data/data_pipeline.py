@@ -11,9 +11,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from config.logging_config import get_logger
 from data.feature_engineering import FeatureEngineering
 
-class DataPipelineError(Exception):
-    """Custom exception for data pipeline errors"""
-    pass
+from exceptions import DataPipelineError
 
 class DataPipeline:
     """

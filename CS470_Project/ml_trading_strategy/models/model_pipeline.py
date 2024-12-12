@@ -21,9 +21,7 @@ from config.settings import (
 )
 from config.logging_config import get_logger
 
-class ModelPipelineError(Exception):
-    """Custom exception for model pipeline errors"""
-    pass
+from exceptions import ModelError
 
 class ModelPipeline:
     def __init__(
