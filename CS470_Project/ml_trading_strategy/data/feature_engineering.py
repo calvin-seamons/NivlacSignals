@@ -127,6 +127,10 @@ class FeatureEngineering:
                 # Get feature columns (exclude price and volume)
                 feature_cols = [col for col in processed_data.columns 
                             if col not in [self.price_col, 'Volume']]
+
+                # Add this debug print:
+                print("Total feature columns:", len(feature_cols))
+                print("Unique feature columns:", sorted(set(feature_cols)))
                 
                 for i in range(lookback_window, len(processed_data) - forecast_horizon):
                     # Validate data window
@@ -214,32 +218,35 @@ class FeatureEngineering:
         )
     
     def get_feature_names(self) -> List[str]:
-        """Get list of feature names in order."""
-        feature_names = []
-        
-        # Basic features
-        feature_names.extend([
-            'returns', 'log_returns', 'volatility',
-            'volume_ma', 'volume_std'
-        ])
-        
-        # Technical features
-        feature_names.extend([
+        """Get list of feature names in order, including lookback window expansions."""
+        # Price data columns (sorted alphabetically to match DataFrame columns)
+        base_features = [
+            'Dividends', 'High', 'Low', 'Open', 'Stock_Splits',  # Note the underscore
+            # Basic features
+            'log_returns', 'macd', 'macd_signal',
+            'returns', 'rsi',
             'sma_10', 'sma_30', 'sma_60',
-            'rsi', 'macd', 'macd_signal'
-        ])
+            'volatility', 'volume_ma', 'volume_std'
+        ]
         
-        # ML features
-        lookback_window = self.lookback_window  # You'll need to store this as an instance variable
-        for lag in range(1, lookback_window + 1):
-            feature_names.extend([
-                f'return_lag_{lag}',
-                f'volume_lag_{lag}'
+        # Add lag features in order
+        for i in range(1, self.lookback_window + 1):
+            base_features.extend([
+                f'return_lag_{i}',
+                f'volume_lag_{i}'
             ])
         
-        feature_names.extend([
-            'return_mean_5d', 'return_std_5d',
-            'volume_mean_5d'
+        # Add rolling statistics
+        base_features.extend([
+            'return_mean_5d', 'return_std_5d', 'volume_mean_5d'
         ])
+        
+        # Generate final feature names with time steps
+        feature_names = []
+        for feature in base_features:
+            # Replace any spaces with underscores
+            feature = feature.replace(' ', '_')
+            for t in range(self.lookback_window):
+                feature_names.append(f"{feature}_{t}")
         
         return feature_names

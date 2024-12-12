@@ -97,20 +97,13 @@ class ModelPipeline:
         y_train: np.ndarray,
         X_val: Optional[np.ndarray] = None,
         y_val: Optional[np.ndarray] = None,
-        feature_names: Optional[List[str]] = None
+        feature_names: Optional[List[str]] = None  # We can keep this param but won't use it
     ) -> Dict:
         """
         Train the model
         """
         try:
             self._initialize_model()
-            
-            # Generate default feature names if none provided
-            if feature_names is None:
-                feature_names = [f'feature_{i}' for i in range(X_train.shape[1])]
-                
-            # Convert feature_names to list if it's not already
-            feature_names = list(feature_names)
             
             eval_set = [(X_train, y_train)]
             if X_val is not None and y_val is not None:
@@ -119,7 +112,6 @@ class ModelPipeline:
             if self.model_type == 'lightgbm':
                 fit_params = {
                     'eval_set': eval_set,
-                    'feature_name': feature_names,
                     'callbacks': [lgb.early_stopping(
                         stopping_rounds=self.model_params.get('early_stopping_rounds', 50),
                         verbose=False
@@ -128,9 +120,9 @@ class ModelPipeline:
                 self.model.fit(X_train, y_train, **fit_params)
                 
             elif self.model_type == 'xgboost':
-                # Create DMatrix with feature names
-                dtrain = xgb.DMatrix(X_train, label=y_train, feature_names=feature_names)
-                dval = xgb.DMatrix(X_val, label=y_val, feature_names=feature_names) if X_val is not None else None
+                # Create DMatrix without feature names
+                dtrain = xgb.DMatrix(X_train, label=y_train)
+                dval = xgb.DMatrix(X_val, label=y_val) if X_val is not None else None
                 
                 # Set up watchlist
                 watchlist = [(dtrain, 'train')]
@@ -146,8 +138,8 @@ class ModelPipeline:
                 )
                 
             elif self.model_type == 'catboost':
-                train_pool = Pool(X_train, y_train, feature_names=feature_names)
-                val_pool = Pool(X_val, y_val, feature_names=feature_names) if X_val is not None else None
+                train_pool = Pool(X_train, y_train)
+                val_pool = Pool(X_val, y_val) if X_val is not None else None
                 
                 self.model.fit(
                     train_pool,
@@ -193,7 +185,7 @@ class ModelPipeline:
             
         try:
             if self.model_type == 'xgboost':
-                # Create DMatrix for prediction
+                # Create DMatrix without feature names
                 dtest = xgb.DMatrix(X)
                 return self.model.predict(dtest)
             else:
@@ -349,29 +341,31 @@ class ModelPipeline:
         Comprehensive model evaluation
         
         Args:
-            X: Feature matrix (must have same number of features as training data)
+            X: Feature matrix
             y: True values
             returns: Optional returns for financial metrics
         """
         try:
-            # Check feature dimensions
+            # Check if model exists
             if self.model is None:
                 raise ModelPipelineError("Model not trained. Call train() first.")
                 
-            expected_features = self.model.n_features_in_  # Get expected number of features
-            
-            # Ensure X is 2D with correct number of features
-            if X.ndim == 1:
-                if len(X) != expected_features:
-                    raise ModelPipelineError(
-                        f"Input has {len(X)} features but model expects {expected_features} features"
-                    )
-                X = X.reshape(1, -1)
-            elif X.shape[1] != expected_features:
-                raise ModelPipelineError(
-                    f"Input has {X.shape[1]} features but model expects {expected_features} features"
-                )
+            # For XGBoost, we don't need to check number of features as DMatrix handles that
+            if self.model_type != 'xgboost':
+                expected_features = self.model.n_features_in_  # Get expected number of features
                 
+                # Ensure X is 2D with correct number of features
+                if X.ndim == 1:
+                    if len(X) != expected_features:
+                        raise ModelPipelineError(
+                            f"Input has {len(X)} features but model expects {expected_features} features"
+                        )
+                    X = X.reshape(1, -1)
+                elif X.shape[1] != expected_features:
+                    raise ModelPipelineError(
+                        f"Input has {X.shape[1]} features but model expects {expected_features} features"
+                    )
+                    
             # Generate predictions
             predictions = self.predict(X)
             
