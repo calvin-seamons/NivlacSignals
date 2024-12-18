@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import logging
 from typing import List, Dict, Optional
 import os
+import time
 import yaml
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
@@ -110,28 +111,49 @@ class BacktestDataManager:
         Returns:
             Dict[str, pd.DataFrame]: Dictionary mapping symbols to their data
         """
+        print(f"\n=== Starting get_data ===")
+        print(f"Input symbols: {symbols}")
+        print(f"Date range: {start_date} to {end_date}")
+        
         # Validate symbols first
+        print("\nValidating symbols...")
         valid_symbols = self._validate_symbols(symbols, start_date, end_date)
+        print(f"Valid symbols after validation: {valid_symbols}")
+        
+        if not valid_symbols:
+            print("WARNING: No valid symbols found after validation!")
+            return {}
         
         # Initialize result dictionary
         result = {}
         
+        print("\nStarting parallel processing...")
         # Process symbols in parallel
         with ThreadPoolExecutor(max_workers=self.config['download']['batch_size']) as executor:
+            print(f"Created ThreadPoolExecutor with max_workers: {self.config['download']['batch_size']}")
+            
             future_to_symbol = {
                 executor.submit(self._get_symbol_data, symbol, start_date, end_date): symbol
                 for symbol in valid_symbols
             }
+            print(f"Submitted {len(future_to_symbol)} tasks to executor")
             
             for future in as_completed(future_to_symbol):
                 symbol = future_to_symbol[future]
+                print(f"\nProcessing result for symbol: {symbol}")
                 try:
                     data = future.result()
                     if data is not None:
+                        print(f"Successfully retrieved data for {symbol}, shape: {data.shape}")
                         result[symbol] = data
+                    else:
+                        print(f"No data returned for {symbol}")
                 except Exception as e:
+                    print(f"Error processing {symbol}: {str(e)}")
                     self.logger.error(f"Error processing {symbol}: {str(e)}")
-                    
+        
+        print(f"\n=== Completed get_data ===")
+        print(f"Successfully retrieved data for {len(result)} symbols: {list(result.keys())}")
         return result
 
     def _get_symbol_data(self, symbol: str, start_date: datetime, end_date: datetime) -> Optional[pd.DataFrame]:
@@ -174,36 +196,65 @@ class BacktestDataManager:
         Returns:
             List[str]: List of valid symbols
         """
+        print(f"\n=== Starting symbol validation ===")
+        print(f"Validating {len(symbols)} symbols: {symbols}")
         valid_symbols = []
         
         for symbol in symbols:
+            print(f"\nChecking symbol: {symbol}")
+            
             # Check invalid symbols cache
             if symbol in self.invalid_symbols:
-                if datetime.now() - self.invalid_symbols[symbol] < timedelta(days=self.config['cache']['cache_expiry_days']):
+                cache_age = datetime.now() - self.invalid_symbols[symbol]
+                print(f"Symbol found in invalid cache, age: {cache_age}")
+                if cache_age < timedelta(days=self.config['cache']['cache_expiry_days']):
+                    print(f"Skipping {symbol} - marked as invalid in cache")
                     continue
-            
-            # Check database
-            with sqlite3.connect(self.db_path) as conn:
-                cursor = conn.cursor()
-                cursor.execute("""
-                    SELECT is_valid, first_available_date, last_available_date
-                    FROM symbols_meta
-                    WHERE symbol = ?
-                """, (symbol,))
-                
-                result = cursor.fetchone()
-                
-                if result and result[0]:  # Symbol is valid
-                    first_date = datetime.strptime(result[1], '%Y-%m-%d').date()
-                    last_date = datetime.strptime(result[2], '%Y-%m-%d').date()
-                    
-                    if (first_date <= start_date.date() and 
-                        last_date >= end_date.date()):
-                        valid_symbols.append(symbol)
                 else:
-                    # New symbol or needs revalidation
-                    valid_symbols.append(symbol)
+                    print(f"Invalid cache expired for {symbol}, will revalidate")
+            
+            try:
+                with sqlite3.connect(self.db_path) as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        SELECT is_valid, first_available_date, last_available_date
+                        FROM symbols_meta
+                        WHERE symbol = ?
+                    """, (symbol,))
+                    
+                    result = cursor.fetchone()
+                    print(f"Database query result for {symbol}: {result}")
+                    
+                    if result:  # Symbol exists in database
+                        is_valid = result[0]
+                        if not is_valid:
+                            print(f"Symbol {symbol} marked as invalid in database")
+                            continue
+                            
+                        first_date = datetime.strptime(result[1], '%Y-%m-%d').date()
+                        last_date = datetime.strptime(result[2], '%Y-%m-%d').date()
+                        print(f"Date range in DB: {first_date} to {last_date}")
+                        
+                        # If we have data that partially covers our range, consider it valid
+                        # We'll download new data as needed
+                        if not (first_date > end_date.date() or last_date < start_date.date()):
+                            print(f"Adding {symbol} to valid symbols - date range acceptable")
+                            valid_symbols.append(symbol)
+                        else:
+                            print(f"Date range mismatch for {symbol}")
+                    else:
+                        # New symbol - always consider valid for first attempt
+                        print(f"New symbol {symbol} - adding to valid symbols for first attempt")
+                        valid_symbols.append(symbol)
+                        
+            except Exception as e:
+                print(f"Error checking database for {symbol}: {str(e)}")
+                # If there's an error checking the database, we'll try to validate the symbol
+                print(f"Adding {symbol} to valid symbols despite error")
+                valid_symbols.append(symbol)
         
+        print(f"\n=== Completed symbol validation ===")
+        print(f"Found {len(valid_symbols)} valid symbols: {valid_symbols}")
         return valid_symbols
 
     def _download_data(self, symbol: str, start_date: datetime, end_date: datetime) -> Optional[pd.DataFrame]:
@@ -218,8 +269,13 @@ class BacktestDataManager:
         Returns:
             Optional[pd.DataFrame]: Downloaded data or None if failed
         """
+        print(f"\n=== Downloading data for {symbol} ===")
+        print(f"Date range: {start_date} to {end_date}")
+        
         for attempt in range(self.config['download']['max_retries']):
             try:
+                print(f"Download attempt {attempt + 1} for {symbol}")
+                
                 ticker = yf.Ticker(symbol)
                 df = ticker.history(
                     start=start_date,
@@ -227,19 +283,33 @@ class BacktestDataManager:
                     interval='1d'
                 )
                 
+                print(f"Downloaded {len(df)} rows of data for {symbol}")
+                
+                if df.empty:
+                    print(f"No data returned for {symbol}")
+                    return None
+                    
                 if len(df) >= self.config['validation']['min_data_points']:
+                    print(f"Sufficient data points ({len(df)}) for {symbol}")
                     df = self._validate_and_clean_data(df)
                     if df is not None:
+                        print(f"Data validation successful for {symbol}")
                         self._update_symbol_metadata(symbol, df)
                         return df
+                    else:
+                        print(f"Data validation failed for {symbol}")
+                else:
+                    print(f"Insufficient data points ({len(df)}) for {symbol}")
                 
                 return None
                 
             except Exception as e:
-                self.logger.warning(f"Attempt {attempt + 1} failed for {symbol}: {str(e)}")
+                print(f"Attempt {attempt + 1} failed for {symbol}: {str(e)}")
                 if attempt < self.config['download']['max_retries'] - 1:
+                    print(f"Waiting {self.config['download']['retry_delay']} seconds before retry...")
                     time.sleep(self.config['download']['retry_delay'])
         
+        print(f"All attempts failed for {symbol}, marking as invalid")
         self.invalid_symbols[symbol] = datetime.now()
         return None
 
@@ -262,7 +332,7 @@ class BacktestDataManager:
             return None
             
         # Fill missing values
-        df = df.fillna(method='ffill').fillna(method='bfill')
+        df = df.ffill().bfill()
         
         # Check for price validity
         if (df['Close'] < self.config['validation']['price_threshold']).any():
