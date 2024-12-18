@@ -7,19 +7,27 @@ from typing import List, Dict, Optional, Union
 import yfinance as yf
 from pathlib import Path
 import pickle
+import yaml
 
 # Import our custom classes (to be implemented later)
-from factor_pipeline import FactorPipeline
-from ml_model import MLModel
-from mean_reversion import MeanReversionAnalyzer
-from trading_strategy import TradingStrategy
+from FactorPipeline import FactorPipeline
+from MLModel import MLModel
+from MeanReversionAnalyzer import MeanReversionAnalyzer
+from TradingStrategy import TradingStrategy
 
-from config.logging_config import get_logger
-from config.settings import (
-    PORTFOLIO_STRATEGY_PARAMS,
-    OPTIMIZATION_PARAMS,
-    DATA_DIR
-)
+def load_config(config_path: str = "config.yaml") -> dict:
+    """Load configuration from YAML file"""
+    with open(config_path, 'r') as f:
+        return yaml.safe_load(f)
+
+def setup_logging(config: dict) -> logging.Logger:
+    """Setup logging based on configuration"""
+    logging.basicConfig(
+        level=config['logging']['level'],
+        format=config['logging']['format'],
+        filename=Path(config['paths']['log_dir']) / config['logging']['file']
+    )
+    return logging.getLogger(__name__)
 
 class CustomYahooFeed(bt.feeds.PandasData):
     """
@@ -41,35 +49,39 @@ class CustomYahooFeed(bt.feeds.PandasData):
 class Backtest:
     def __init__(
         self,
+        config_path: str,
         start_date: Union[str, datetime],
         end_date: Union[str, datetime],
         symbols: List[str],
         initial_cash: float = 1_000_000,
-        commission: float = 0.001,
-        cache_dir: Optional[str] = None
+        commission: Optional[float] = None
     ):
         """
         Initialize Backtest.
         
         Args:
+            config_path: Path to YAML configuration file
             start_date: Start date for backtest
             end_date: End date for backtest
             symbols: List of symbols to trade
             initial_cash: Initial capital
-            commission: Commission rate per trade
-            cache_dir: Directory for caching data
+            commission: Commission rate per trade (overrides config if provided)
         """
-        self.logger = get_logger(self.__class__.__name__)
+        # Load configuration
+        self.config = load_config(config_path)
+        
+        # Setup logging
+        self.logger = setup_logging(self.config)
         
         # Convert dates if they're strings
         self.start_date = pd.to_datetime(start_date)
         self.end_date = pd.to_datetime(end_date)
         self.symbols = symbols
         self.initial_cash = initial_cash
-        self.commission = commission
+        self.commission = commission or self.config['portfolio_strategy']['transaction_costs']['commission']
         
-        # Setup cache
-        self.cache_dir = Path(cache_dir) if cache_dir else Path(DATA_DIR) / 'cache'
+        # Setup cache directory
+        self.cache_dir = Path(self.config['paths']['data_dir']) / 'cache'
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         
         # Initialize storage
@@ -148,19 +160,23 @@ class Backtest:
             self.logger.info("Setting up factor pipeline...")
             
             # Initialize ML model
-            ml_model = MLModel()  # To be implemented
+            ml_model = MLModel(
+                model_type=self.config['model_pipeline']['default_model_type'],
+                model_params=self.config['model_pipeline']['model_params']
+            )
             
             # Initialize mean reversion analyzer
             mean_reversion = MeanReversionAnalyzer(
-                lookback_periods=PORTFOLIO_STRATEGY_PARAMS.get('lookback_periods', 20)
-            )  # To be implemented
+                **self.config['mean_reversion']
+            )
             
             # Create factor pipeline
             self.factor_pipeline = FactorPipeline(
                 ml_model=ml_model,
                 mean_reversion=mean_reversion,
-                data=self.data
-            )  # To be implemented
+                data=self.data,
+                **self.config['factor_pipeline']
+            )
             
             # Generate initial rankings
             self.factor_pipeline.update()
@@ -184,7 +200,8 @@ class Backtest:
             # Add strategy
             self.cerebro.addstrategy(
                 TradingStrategy,
-                factor_pipeline=self.factor_pipeline
+                factor_pipeline=self.factor_pipeline,
+                strategy_params=self.config['portfolio_strategy']
             )
             
             # Set broker parameters
@@ -316,11 +333,12 @@ class Backtest:
             raise
             
 def run_backtest(
+    config_path: str,
     symbols: List[str],
     start_date: str,
     end_date: str,
     initial_cash: float = 1_000_000,
-    commission: float = 0.001
+    commission: Optional[float] = None
 ) -> Dict:
     """
     Convenience function to run a complete backtest
@@ -328,6 +346,7 @@ def run_backtest(
     try:
         # Initialize backtest
         bt = Backtest(
+            config_path=config_path,
             start_date=start_date,
             end_date=end_date,
             symbols=symbols,
