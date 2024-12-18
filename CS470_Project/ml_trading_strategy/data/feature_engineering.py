@@ -123,46 +123,34 @@ class FeatureEngineering:
                                     data: Dict[str, pd.DataFrame],
                                     lookback_window: int = 20,
                                     forecast_horizon: int = 5) -> tuple[pd.DataFrame, pd.Series]:
-        """
-        Prepare final feature matrix and target vector for ML training with improved validation
-        and normalization.
-        
-        Args:
-            data: Dictionary of DataFrames with price/volume data
-            lookback_window: Number of past days to use
-            forecast_horizon: Days ahead to predict
-            
-        Returns:
-            Tuple of (features DataFrame, targets Series)
-        """
+    
+        self.logger.info(f"Starting feature preparation with {len(data)} symbols")
         features_list = []
         targets_list = []
         dates_list = []
         symbols_list = []
         
-        for symbol, df in data.items():
+        for symbol_idx, (symbol, df) in enumerate(data.items(), 1):
+            self.logger.info(f"Processing symbol {symbol} ({symbol_idx}/{len(data)})")
             try:
                 # Process features
                 processed_data = self.calculate_basic_features(df)
                 processed_data = self.calculate_technical_features(processed_data)
                 processed_data = self.create_ml_features(processed_data, lookback_window)
                 
-                # Get feature columns (exclude price and volume)
+                # Get feature columns
                 feature_cols = [col for col in processed_data.columns 
                             if col not in [self.price_col, 'Volume']]
-
-                # Add this debug print:
-                print("Total feature columns:", len(feature_cols))
-                print("Unique feature columns:", sorted(set(feature_cols)))
+                
+                self.logger.info(f"{symbol}: Processing {len(processed_data) - lookback_window - forecast_horizon} potential samples")
+                samples_for_symbol = 0
                 
                 for i in range(lookback_window, len(processed_data) - forecast_horizon):
-                    # Validate data window
                     feature_window = processed_data.iloc[i-lookback_window:i][feature_cols]
                     
                     if feature_window.isnull().any().any():
                         continue
                         
-                    # Validate and calculate future return
                     future_return = self._calculate_future_return(
                         processed_data[self.price_col],
                         i,
@@ -172,21 +160,31 @@ class FeatureEngineering:
                     if future_return is None:
                         continue
                     
-                    # Store valid sample
                     features_list.append(feature_window.values)
                     targets_list.append(future_return)
                     dates_list.append(processed_data.index[i])
                     symbols_list.append(symbol)
+                    samples_for_symbol += 1
                     
+                    # Log progress every 1000 samples
+                    if samples_for_symbol % 1000 == 0:
+                        self.logger.info(f"{symbol}: Processed {samples_for_symbol} samples")
+                
+                self.logger.info(f"Completed {symbol} with {samples_for_symbol} valid samples")
+                
             except Exception as e:
                 self.logger.error(f"Error preparing features for {symbol}: {e}")
                 continue
         
+        self.logger.info(f"Feature generation complete. Total samples: {len(features_list)}")
+        
         if not features_list:
             raise ValueError("No valid samples generated")
-            
-        # Create features DataFrame with MultiIndex
+        
+        self.logger.info("Creating features array...")
         features_array = np.stack(features_list)
+        
+        self.logger.info("Creating features DataFrame...")
         features_df = pd.DataFrame(
             features_array.reshape(len(features_list), -1),
             index=pd.MultiIndex.from_arrays([dates_list, symbols_list], 
@@ -195,16 +193,17 @@ class FeatureEngineering:
                     for t in range(lookback_window)]
         )
         
-        # Create targets Series
+        self.logger.info("Creating targets series...")
         targets_series = pd.Series(
             targets_list,
             index=features_df.index,
             name='future_return'
         )
         
-        # Apply cross-sectional normalization
+        self.logger.info("Applying normalization...")
         features_df = self._normalize_features(features_df)
         
+        self.logger.info("Feature preparation complete")
         return features_df, targets_series
 
     def _calculate_future_return(self, 
@@ -227,18 +226,58 @@ class FeatureEngineering:
 
     def _normalize_features(self, features_df: pd.DataFrame) -> pd.DataFrame:
         """
-        Apply cross-sectional normalization to features.
-        
-        Args:
-            features_df: DataFrame with MultiIndex (date, symbol)
-            
-        Returns:
-            Normalized DataFrame
+        Apply cross-sectional normalization using efficient NumPy operations.
         """
-        # Group by date and normalize within each date
-        return features_df.groupby(level='date').transform(
-            lambda x: (x - x.mean()) / (x.std() + 1e-8)  # Add epsilon to avoid division by zero
-        )
+        self.logger.info(f"Starting normalization for DataFrame of shape {features_df.shape}")
+        
+        try:
+            # Convert to numpy array for faster operations
+            values = features_df.values
+            dates = features_df.index.get_level_values('date')
+            unique_dates = dates.unique()
+            
+            self.logger.info(f"Processing {len(unique_dates)} unique dates")
+            
+            # Pre-allocate normalized array
+            normalized_values = np.empty_like(values)
+            
+            # Process each date
+            for i, date in enumerate(unique_dates):
+                if i % 100 == 0:  # Log progress
+                    self.logger.info(f"Processed {i}/{len(unique_dates)} dates")
+                    
+                # Get mask for current date
+                mask = dates == date
+                date_data = values[mask]
+                
+                if len(date_data) > 1:
+                    # Calculate statistics
+                    means = np.nanmean(date_data, axis=0, keepdims=True)
+                    stds = np.nanstd(date_data, axis=0, keepdims=True)
+                    
+                    # Replace zero stds with 1
+                    stds[stds == 0] = 1
+                    
+                    # Normalize
+                    normalized_values[mask] = (date_data - means) / (stds + 1e-8)
+                else:
+                    normalized_values[mask] = date_data
+            
+            # Convert back to DataFrame
+            normalized_df = pd.DataFrame(
+                normalized_values,
+                index=features_df.index,
+                columns=features_df.columns
+            )
+            
+            self.logger.info("Normalization complete")
+            return normalized_df
+            
+        except Exception as e:
+            self.logger.error(f"Error during normalization: {e}")
+            self.logger.error(f"Error details: {str(e)}")
+            self.logger.warning("Returning unnormalized data due to error")
+            return features_df
     
     def get_feature_names(self) -> List[str]:
         """Get list of feature names in order, including lookback window expansions."""
