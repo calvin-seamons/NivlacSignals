@@ -159,3 +159,4 @@ cython_debug/
 volatility-trading/term-sheets/*.pdf
 volatility-trading/img/*.png
 Webscraping/extracted_content/*
+CS470_Project/ML_Backtesting/data/*
