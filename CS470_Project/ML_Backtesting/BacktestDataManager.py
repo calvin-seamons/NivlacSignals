@@ -47,31 +47,15 @@ class BacktestDataManager:
         
     def _load_config(self) -> dict:
         """Load configuration settings from YAML file."""
-        default_config = {
-            'cache': {
-                'max_memory_cache_size': 1000,
-                'cache_expiry_days': 1,
-                'update_frequency': '1d',
-                'compression_type': 'parquet'
-            },
-            'download': {
-                'max_retries': 3,
-                'retry_delay': 5,
-                'batch_size': 100,
-                'timeout': 30
-            },
-            'validation': {
-                'min_data_points': 50,
-                'max_missing_pct': 0.1,
-                'price_threshold': 0.01
-            }
-        }
+        config_path = os.path.join('config', 'config.yaml')
         
-        config_path = os.path.join(self.cache_dir, 'config.yaml')
         if os.path.exists(config_path):
             with open(config_path, 'r') as f:
-                return yaml.safe_load(f)
-        return default_config
+                config = yaml.safe_load(f)
+                print(f"Loaded configuration from {config_path}")
+                return config
+        else:
+            raise FileNotFoundError(f"Configuration file not found at {config_path}. Please ensure config.yaml exists.")
 
     def _initialize_database(self) -> None:
         """Initialize SQLite database with required tables."""
