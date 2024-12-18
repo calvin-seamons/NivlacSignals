@@ -21,12 +21,12 @@ from config.settings import (
 )
 from config.logging_config import get_logger
 
-from exceptions import ModelError
+from exceptions import ModelPipelineError
 
 class ModelPipeline:
     def __init__(
     self,
-    model_type: str = DEFAULT_MODEL_TYPE,
+    model_type: str = 'catboost',
     model_params: Optional[dict] = None,
     train_params: Optional[dict] = None
     ):

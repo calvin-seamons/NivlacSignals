@@ -21,7 +21,7 @@ RESULTS_DIR = os.path.join(BASE_DIR, 'results')
 # MODEL PIPELINE SETTINGS
 #############################################
 # Model Selection
-DEFAULT_MODEL_TYPE = 'xgboost'  # Options: 'lightgbm', 'xgboost', 'catboost'
+DEFAULT_MODEL_TYPE = 'lightgbm'  # Options: 'lightgbm', 'xgboost', 'catboost'
 MODEL_SAVE_PATH = os.path.join(MODEL_DIR, 'saved_models')
 
 # Model Parameters by Type
@@ -153,3 +153,57 @@ DEBUG_MODE = True
 SAVE_PREDICTIONS = True
 SAVE_POSITIONS = True
 PLOT_RESULTS = True
+
+#############################################
+# PORTFOLIO STRATEGY SETTINGS
+#############################################
+PORTFOLIO_STRATEGY_PARAMS = {
+    # Rebalancing parameters
+    'rebalance_frequency': 20,  # Trading days between rebalances
+    'min_rebalance_size': 0.02,  # Minimum position change to trigger trade
+    
+    # Position sizing
+    'max_position_size': 0.10,  # Maximum single position size (10%)
+    'min_positions': 3,  # Minimum positions per side
+    'target_leverage': 1.0,  # Target portfolio leverage
+    
+    # Risk parameters
+    'risk_free_rate': 0.02,  # Annual risk-free rate
+    'max_sector_exposure': 0.30,  # Maximum exposure per sector
+    'position_limits': {
+        'market_cap': {  # Position limits by market cap
+            'large': 0.15,
+            'mid': 0.10,
+            'small': 0.05
+        }
+    },
+    
+    # Transaction cost assumptions
+    'transaction_costs': {
+        'commission': 0.001,  # 10 bps per trade
+        'slippage': 0.001,  # 10 bps slippage assumption
+    },
+    
+    # Risk management
+    'stop_loss': -0.05,  # 5% stop loss per position
+    'profit_target': 0.10,  # 10% profit target
+    'portfolio_stop_loss': -0.10,  # 10% portfolio stop loss
+    
+    # Performance tracking
+    'benchmark': 'SPY',  # Benchmark for performance comparison
+    'tracking_error_limit': 0.10,  # Maximum tracking error
+}
+
+# Portfolio optimization parameters
+OPTIMIZATION_PARAMS = {
+    'method': 'SLSQP',  # Optimization method
+    'risk_aversion': 1.0,  # Risk aversion parameter
+    'constraints': {
+        'long_weight_min': 0.0,
+        'short_weight_max': 0.0,
+        'net_exposure_range': (-0.2, 0.2),  # Net exposure limits
+        'gross_exposure_max': 2.0,  # Maximum gross exposure
+    },
+    'optimization_frequency': 'monthly',  # Frequency of full portfolio optimization
+    'reoptimization_threshold': 0.05,  # Threshold for triggering reoptimization
+}

@@ -86,3 +86,15 @@ class CacheError(Exception):
     def __init__(self, message: str = "Cache operation error"):
         self.message = message
         super().__init__(self.message)
+
+class StrategyError(Exception):
+    """Exception for errors in trading strategy implementation."""
+    def __init__(self, message: str = "Trading strategy error"):
+        self.message = message
+        super().__init__(self.message)
+
+class ModelPipelineError(Exception):
+    """Exception for errors in model pipeline operations."""
+    def __init__(self, message: str = "Error in model pipeline operation"):
+        self.message = message
+        super().__init__(self.message)

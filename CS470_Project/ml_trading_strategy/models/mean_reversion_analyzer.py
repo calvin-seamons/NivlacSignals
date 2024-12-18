@@ -165,7 +165,7 @@ class MeanReversionAnalyzer:
             
         except Exception as e:
             self.logger.error(f"Error generating signals: {e}")
-            raise MeanReversionAnalyzerError(f"Error generating signals: {e}")
+            raise MeanReversionError(f"Error generating signals: {e}")
     
     def get_position_sizes(self) -> Dict[str, float]:
         """Calculate position sizes based on signal strength"""
