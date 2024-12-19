@@ -5,7 +5,7 @@ import backtrader as bt
 import pandas as pd
 from typing import Dict, List, Optional
 from BacktestDataManager import BacktestDataManager
-# from .factor_pipeline import FactorPipeline
+from FactorPipeline import FactorPipeline
 # from .trading_strategy import TradingStrategy
 
 class YahooDataFeed(bt.feeds.PandasData):
@@ -95,6 +95,17 @@ class Backtest:
         except Exception as e:
             logger.error(f"Error fetching data: {str(e)}")
             raise
+
+    def initialize_factorpipeline(self) -> None:
+        """
+        Initialize the FactorPipeline instance with the configuration file.
+        """
+        self.pipeline = FactorPipeline(self.historical_data)
+        self.filtered_symbols = self.pipeline.basic_screen()
+        self.pipeline.rank_opportunities()
+
+        self.logger.info(f"Filtered universe length: {len(self.filtered_symbols)}")
+        print(f"Filtered universe length: {len(self.filtered_symbols)}")
 
     def setup_cerebro(self) -> None:
         """

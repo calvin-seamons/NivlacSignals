@@ -1,4 +1,8 @@
 # config.yaml
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "trading.log"
 
 paths:
   base_dir: "./backtesting"
@@ -25,95 +29,30 @@ download:
   batch_size: 100            # Number of parallel downloads
   timeout: 30                # Download timeout in seconds
 
-validation:
+# Factor Pipeline Configuration
+validation: # Also used in the BacktestDataManager
   min_data_points: 50        # Minimum required data points for a valid symbol
   max_missing_pct: 0.1       # Maximum allowed percentage of missing values
-  price_threshold: 0.01      # Minimum allowed price value
-
-model_pipeline:
-  default_model_type: "lightgbm"
-  model_params:
-    lightgbm:
-      objective: "regression"
-      metric: "rmse"
-      boosting_type: "gbdt"
-      num_leaves: 31
-      learning_rate: 0.05
-      colsample_bytree: 0.9
-      n_estimators: 100
-      early_stopping_rounds: 50
-      force_col_wise: true
-      verbose: -1
-    xgboost:
-      objective: "reg:squarederror"
-      eval_metric: "rmse"
-      max_depth: 6
-      learning_rate: 0.05
-      n_estimators: 100
-      early_stopping_rounds: 50
-    catboost:
-      loss_function: "RMSE"
-      iterations: 100
-      learning_rate: 0.05
-      depth: 6
-      early_stopping_rounds: 50
-
-training:
-  train_test_split: 0.8
-  validation_size: 0.2
-  cv_folds: 5
-  random_state: 42
-  shuffle: false
-
-feature_engineering:
-  lookback_windows: [5, 10, 20, 60]
-  target_horizon: 5
-  min_training_size: 252
-
-portfolio_strategy:
-  # Rebalancing parameters
-  rebalance_frequency: 20  # Trading days between rebalances
-  min_rebalance_size: 0.02  # Minimum position change to trigger trade
-  
-  # Position sizing
-  max_position_size: 0.10  # Maximum single position size (10%)
-  min_positions: 3  # Minimum positions per side
-  target_leverage: 1.0  # Target portfolio leverage
-  
-  # Risk parameters
-  risk_free_rate: 0.02  # Annual risk-free rate
-  max_sector_exposure: 0.30  # Maximum exposure per sector
-  position_limits:
-    market_cap:
-      large: 0.15
-      mid: 0.10
-      small: 0.05
-  
-  # Transaction costs
-  transaction_costs:
-    commission: 0.001  # 10 bps per trade
-    slippage: 0.001  # 10 bps slippage assumption
-  
-  # Risk management
-  stop_loss: -0.05  # 5% stop loss per position
-  profit_target: 0.10  # 10% profit target
-  portfolio_stop_loss: -0.10  # 10% portfolio stop loss
-
-mean_reversion:
-  lookback_periods: 20
-  z_score_threshold: 2.0
-  volume_percentile: 0.7
-  min_volatility_percentile: 0.3
-  max_positions: 10
+  price_threshold: 5.00      # Used in basic_screen() method
 
 factor_pipeline:
-  mean_reversion_weight: 0.5
-  model_weight: 0.5
-  min_score_threshold: 0.1
-  confidence_threshold: 0.6
-  prediction_frequency: 1
+  model_weight: 0.5         # Used in analyze_stocks() method
+  mean_reversion_weight: 0.5 # Used in analyze_stocks() method
+  min_score_threshold: 0.1  # Used in rank_opportunities() method
 
-logging:
-  level: "INFO"
-  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-  file: "trading.log"
+portfolio_strategy:
+  max_position_size: 0.10   # Used in rank_opportunities() method
+
+
+# Model Configuration
+model_pipeline:
+  model_name: 'RandomForestClassifier'
+  model_params:
+    n_estimators: 100
+    max_depth: 5
+    random_state: 42
+
+# Mean Revision Configuration
+mean_reversion:
+  lookback: 20
+  z_score_threshold: 1.5
