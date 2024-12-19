@@ -185,8 +185,6 @@ class BacktestDataManager:
         valid_symbols = []
         
         for symbol in symbols:
-            print(f"\nChecking symbol: {symbol}")
-            
             # Check invalid symbols cache
             if symbol in self.invalid_symbols:
                 cache_age = datetime.now() - self.invalid_symbols[symbol]
