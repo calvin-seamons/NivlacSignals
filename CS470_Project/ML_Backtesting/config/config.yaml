@@ -52,7 +52,7 @@ model:
   # Model versioning and type
   version: "v1.0"
   type: "LSTM"
-  input_size: 20  # Number of features after feature engineering
+  input_size: 49
   
   # LSTM Architecture
   sequence_length: 10
