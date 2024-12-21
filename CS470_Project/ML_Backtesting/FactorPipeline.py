@@ -5,6 +5,7 @@ import logging
 from dataclasses import dataclass
 import yaml
 import os
+from MLModel import MLModel
 
 @dataclass
 class Position:
@@ -58,8 +59,8 @@ class FactorPipeline:
         self.short_positions: List[Position] = []
         
         # Initialize factor models
-        self.ml_model = MLModel(self.config['model_pipeline'])
-        self.mean_reversion = MeanReversion(self.config['mean_reversion'])
+        self.ml_model = MLModel(self.config)
+        self.mean_reversion = MeanReversion(self.config)
         
         # Store latest analysis results
         self.latest_scores: Dict[str, float] = {}

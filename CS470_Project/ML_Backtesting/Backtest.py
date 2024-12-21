@@ -41,7 +41,7 @@ class Backtest:
         self.start_date = pd.to_datetime(start_date)
         self.end_date = pd.to_datetime(end_date)
 
-    def fetch_historical_data(self, symbols: List[str], start_date: str, end_date: str) -> Dict[str, pd.DataFrame]:
+    def fetch_historical_data(self, symbols: List[str]) -> Dict[str, pd.DataFrame]:
         """
         Fetch historical data for the specified symbols using BacktestDataManager.
         
@@ -53,47 +53,46 @@ class Backtest:
         Returns:
             Dict[str, pd.DataFrame]: Dictionary mapping symbols to their historical data
         """
-        logger = logging.getLogger(__name__)
-        logger.info(f"Starting fetch_historical_data for {len(symbols)} symbols")
+        self.logger.info(f"Starting fetch_historical_data for {len(symbols)} symbols")
         
         # Convert string dates to datetime objects for BacktestDataManager
         try:
             start_dt = self.start_date
             end_dt = self.end_date
-            logger.info(f"Date range: {start_dt} to {end_dt}")
+            self.logger.info(f"Date range: {start_dt} to {end_dt}")
         except Exception as e:
-            logger.error(f"Error converting dates: {str(e)}")
+            self.logger.error(f"Error converting dates: {str(e)}")
             raise
         
         # Create data manager instance if it doesn't exist
         try:
             if not hasattr(self, 'data_manager'):
-                logger.info("Creating new BacktestDataManager instance")
+                self.logger.info("Creating new BacktestDataManager instance")
                 self.data_manager = BacktestDataManager(
                     db_path=os.path.join('data', 'db', 'market_data.db'),
                     cache_dir=os.path.join('data', 'cache')
                 )
         except Exception as e:
-            logger.error(f"Error creating BacktestDataManager: {str(e)}")
+            self.logger.error(f"Error creating BacktestDataManager: {str(e)}")
             raise
         
         # Fetch data using data manager
         try:
-            logger.info("Calling data_manager.get_data")
+            self.logger.info("Calling data_manager.get_data")
             self.historical_data = self.data_manager.get_data(symbols, start_dt, end_dt)
-            logger.info(f"Retrieved data for {len(self.historical_data)} symbols")
+            self.logger.info(f"Retrieved data for {len(self.historical_data)} symbols")
             
             if not self.historical_data:
-                logger.warning("No data was retrieved from BacktestDataManager")
+                self.logger.warning("No data was retrieved from BacktestDataManager")
             else:
                 for symbol in self.historical_data:
                     df = self.historical_data[symbol]
-                    logger.info(f"Retrieved {len(df)} rows for {symbol}")
+                    self.logger.info(f"Retrieved {len(df)} rows for {symbol}")
                     
             return self.historical_data
             
         except Exception as e:
-            logger.error(f"Error fetching data: {str(e)}")
+            self.logger.error(f"Error fetching data: {str(e)}")
             raise
 
     def initialize_factorpipeline(self) -> None:
