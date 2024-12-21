@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import traceback
 from typing import Dict, Tuple, Optional
 import pandas as pd
 import numpy as np
@@ -48,39 +49,49 @@ class TimeSeriesDataset(Dataset):
         return self.X[idx], self.y[idx]
 
 class LSTM(nn.Module):
-    """LSTM model for time series prediction"""
-    def __init__(self, input_size: int, hidden_size: int, num_layers: int):
+    def __init__(self, input_size: int, hidden_size: int, num_layers: int, dropout: float = 0.2):
         super(LSTM, self).__init__()
         self.hidden_size = hidden_size
         self.num_layers = num_layers
-        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
+        
+        # Batch normalization for inputs
+        self.batch_norm = nn.BatchNorm1d(input_size)
+        
+        # LSTM with dropout between layers
+        self.lstm = nn.LSTM(
+            input_size=input_size,
+            hidden_size=hidden_size,
+            num_layers=num_layers,
+            dropout=dropout,
+            batch_first=True
+        )
+        
+        # Additional dropout before final layer
+        self.dropout = nn.Dropout(dropout)
+        
+        # Final fully connected layer
         self.fc = nn.Linear(hidden_size, 1)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Forward pass of the LSTM
+        batch_size, seq_len, features = x.size()
         
-        Args:
-            x (torch.Tensor): Input tensor of shape (batch_size, sequence_length, input_size)
-            
-        Returns:
-            torch.Tensor: Output predictions
-        """
-        # Shape verification
-        if x.dim() != 3:
-            raise ValueError(f"Expected input to be 3D (batch_size, sequence_length, input_size), got {x.dim()}D instead")
+        # Apply batch normalization to each timestep
+        x = x.reshape(-1, features)
+        x = self.batch_norm(x)
+        x = x.reshape(batch_size, seq_len, features)
         
-        batch_size, seq_len, input_size = x.size()
-        
-        # Initialize hidden state and cell state
+        # Initialize hidden state
         h0 = torch.zeros(self.num_layers, batch_size, self.hidden_size).to(x.device)
         c0 = torch.zeros(self.num_layers, batch_size, self.hidden_size).to(x.device)
         
         # Forward propagate LSTM
-        out, _ = self.lstm(x, (h0, c0))
+        lstm_out, _ = self.lstm(x, (h0, c0))
         
-        # Decode the hidden state of the last time step
-        out = self.fc(out[:, -1, :])
+        # Get last timestep output and apply dropout
+        out = self.dropout(lstm_out[:, -1, :])
+        
+        # Final prediction
+        out = self.fc(out)
         return out
 
 class MLModel:
@@ -101,28 +112,37 @@ class MLModel:
         self.feature_engineering = FeatureEngineering(config)
         self.scaler = None
         
+        # Get model parameters for filename
+        model_version = config['model']['version']
+        n_layers = config['model'].get('num_layers', 2)
+        hidden_size = config['model'].get('hidden_size', 64)
+        sequence_length = config['model'].get('sequence_length', 10)
+        
+        # Create descriptive filename
+        model_name = f"lstm_layers{n_layers}_hidden{hidden_size}_seq{sequence_length}_v{model_version}"
+        
         # Setup paths
         self.model_dir = config['paths']['model_dir']
         self.model_path = os.path.join(
             self.model_dir,
-            f"model_{config['model']['version']}.pt"
+            f"{model_name}.pt"
         )
         self.metadata_path = os.path.join(
             self.model_dir,
-            f"metadata_{config['model']['version']}.json"
+            f"{model_name}_metadata.json"
         )
         self.scaler_path = os.path.join(
             self.model_dir,
-            f"scaler_{config['model']['version']}.joblib"
+            f"{model_name}_scaler.joblib"
         )
         
         # Create directories if they don't exist
         os.makedirs(self.model_dir, exist_ok=True)
         
         # LSTM parameters
-        self.sequence_length = config['model'].get('sequence_length', 10)
-        self.hidden_size = config['model'].get('hidden_size', 64)
-        self.num_layers = config['model'].get('num_layers', 2)
+        self.sequence_length = sequence_length
+        self.hidden_size = hidden_size
+        self.num_layers = n_layers
         self.batch_size = config['model'].get('batch_size', 32)
         self.num_epochs = config['model'].get('num_epochs', 100)
         self.learning_rate = config['model'].get('learning_rate', 0.001)
@@ -131,63 +151,41 @@ class MLModel:
         self._load_model()
 
     def train(self, historical_data: Dict[str, pd.DataFrame]) -> None:
-        """Train the model using provided historical data"""
+        """Train the model using provided historical data with financial metrics"""
         print("\n=== Starting Model Training Process ===")
-        print(f"Number of symbols in input data: {len(historical_data)}")
-        
-        # Print sample of input data structure
-        sample_symbol = list(historical_data.keys())[0]
-        print(f"\nSample of input data for {sample_symbol}:")
-        print(historical_data[sample_symbol].head())
-        print(f"Input data shape for {sample_symbol}: {historical_data[sample_symbol].shape}")
-        
         try:
-            print("\n=== Feature Engineering Phase ===")
-            # Get features and create train loader
-            print("Starting feature transformation...")
-            X_train, X_test, y_train, y_test = self.feature_engineering.transform(
+            # Get features and create loaders
+            X_train, X_val, y_train, y_val = self.feature_engineering.transform(
                 historical_data, 
                 train_size=self.config['model'].get('train_test_split', 0.8)
             )
             
-            # Print shapes after feature engineering
-            print("\nData shapes after feature engineering:")
-            print(f"X_train shape: {X_train.shape}")
-            print(f"X_test shape: {X_test.shape}")
-            print(f"y_train shape: {y_train.shape}")
-            print(f"y_test shape: {y_test.shape}")
-            
-            # Create dataset and dataloader
-            print("\n=== Creating DataLoader ===")
+            # Create datasets
             train_dataset = TimeSeriesDataset(X_train, y_train, self.sequence_length)
+            val_dataset = TimeSeriesDataset(X_val, y_val, self.sequence_length)
+            
+            # Create dataloaders
             train_loader = DataLoader(
                 train_dataset,
                 batch_size=self.batch_size,
                 shuffle=True
             )
-            print(f"Number of batches in train_loader: {len(train_loader)}")
+            val_loader = DataLoader(
+                val_dataset,
+                batch_size=self.batch_size,
+                shuffle=False
+            )
             
-            # Initialize model
-            print("\n=== Initializing Model ===")
-            input_size = X_train.shape[2]  # Number of features
-            print(f"Input size (number of features): {input_size}")
-            print(f"Hidden size: {self.hidden_size}")
-            print(f"Number of layers: {self.num_layers}")
+            # Initialize model with dropout
+            input_size = X_train.shape[2]
+            self.model = LSTM(
+                input_size=input_size,
+                hidden_size=self.hidden_size,
+                num_layers=self.num_layers,
+                dropout=self.config['model'].get('dropout', 0.2)
+            )
             
-            self.model = LSTM(input_size, self.hidden_size, self.num_layers)
-            
-            # Print model parameters
-            total_params = sum(p.numel() for p in self.model.parameters())
-            print(f"Total number of model parameters: {total_params}")
-            
-            # Log a sample batch
-            sample_batch = next(iter(train_loader))
-            print("\nSample batch shapes:")
-            print(f"Batch X shape: {sample_batch[0].shape}")
-            print(f"Batch y shape: {sample_batch[1].shape}")
-            
-            # Training setup
-            print("\n=== Setting Up Training ===")
+            # Loss and optimizer
             criterion = nn.MSELoss()
             optimizer = torch.optim.Adam(
                 self.model.parameters(), 
@@ -195,69 +193,133 @@ class MLModel:
                 weight_decay=self.config['model'].get('weight_decay', 0.0001)
             )
             
-            # Initialize best loss for early stopping
-            best_loss = float('inf')
+            # Learning rate scheduler
+            scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+                optimizer, 
+                mode='min', 
+                factor=0.5,
+                patience=5,
+                verbose=True
+            )
+            
+            # Initialize best metrics
+            best_val_metrics = {
+                'loss': float('inf'),
+                'direction_accuracy': 0,
+                'sharpe_ratio': -float('inf'),
+                'information_coefficient': -float('inf')
+            }
             patience_counter = 0
             
             # Training loop
-            print("\n=== Starting Training Loop ===")
-            self.model.train()
-            
             for epoch in range(self.num_epochs):
-                total_loss = 0
-                batch_count = 0
+                # Training phase
+                self.model.train()
+                train_metrics = self._train_epoch(train_loader, optimizer, criterion)
                 
-                for batch_X, batch_y in train_loader:
-                    # Print shapes for first batch of first epoch
-                    if epoch == 0 and batch_count == 0:
-                        print(f"\nFirst batch shapes:")
-                        print(f"batch_X shape: {batch_X.shape}")
-                        print(f"batch_y shape: {batch_y.shape}")
-                    
-                    optimizer.zero_grad()
-                    outputs = self.model(batch_X)
-                    
-                    # Print shapes for first batch of first epoch
-                    if epoch == 0 and batch_count == 0:
-                        print(f"outputs shape: {outputs.shape}")
-                        print(f"batch_y unsqueezed shape: {batch_y.unsqueeze(1).shape}")
-                    
-                    loss = criterion(outputs, batch_y.unsqueeze(1))
-                    loss.backward()
-                    optimizer.step()
-                    
-                    total_loss += loss.item()
-                    batch_count += 1
+                # Validation phase
+                self.model.eval()
+                val_metrics = self._validate_epoch(val_loader, criterion)
                 
-                avg_loss = total_loss / len(train_loader)
+                # Learning rate scheduling
+                scheduler.step(val_metrics['loss'])
                 
-                if (epoch + 1) % 5 == 0:  # Print every 5 epochs
-                    print(f'Epoch [{epoch+1}/{self.num_epochs}], Average Loss: {avg_loss:.6f}')
+                # Early stopping check based on multiple metrics
+                improvement = (
+                    val_metrics['loss'] < best_val_metrics['loss'] - self.config['model'].get('min_delta', 0.001) or
+                    val_metrics['direction_accuracy'] > best_val_metrics['direction_accuracy'] + 0.01 or
+                    val_metrics['sharpe_ratio'] > best_val_metrics['sharpe_ratio'] + 0.1
+                )
                 
-                # Early stopping check
-                if avg_loss < best_loss - self.config['model'].get('min_delta', 0.001):
-                    best_loss = avg_loss
+                if improvement:
+                    best_val_metrics = val_metrics.copy()
                     patience_counter = 0
-                    print(f"New best loss: {best_loss:.6f}")
-                    # Save best model
                     self._save_model()
+                    print(f"New best model saved with metrics: {val_metrics}")
                 else:
                     patience_counter += 1
-                    if patience_counter >= self.config['model'].get('early_stopping_patience', 10):
-                        print(f'\nEarly stopping triggered at epoch {epoch+1}')
-                        break
+                
+                # Print epoch metrics
+                if (epoch + 1) % 5 == 0:
+                    print(f"\nEpoch [{epoch+1}/{self.num_epochs}]")
+                    print(f"Train metrics: {train_metrics}")
+                    print(f"Val metrics: {val_metrics}")
+                
+                # Early stopping check
+                if patience_counter >= self.config['model'].get('early_stopping_patience', 10):
+                    print(f'\nEarly stopping triggered at epoch {epoch+1}')
+                    break
             
             print("\n=== Training Complete ===")
-            print(f"Final best loss: {best_loss:.6f}")
+            print(f"Best validation metrics: {best_val_metrics}")
             
         except Exception as e:
             print(f"\n!!! Error during model training !!!")
             print(f"Error type: {type(e).__name__}")
             print(f"Error message: {str(e)}")
-            print("\nTraceback:")
-            import traceback
             traceback.print_exc()
             raise
+
+    def _train_epoch(self, train_loader, optimizer, criterion):
+        """Run one epoch of training"""
+        total_loss = 0
+        all_y_true = []
+        all_y_pred = []
+        
+        for batch_X, batch_y in train_loader:
+            optimizer.zero_grad()
+            outputs = self.model(batch_X)
+            
+            # Store predictions and actual values
+            all_y_true.append(batch_y)
+            all_y_pred.append(outputs.squeeze())
+            
+            # Calculate MSE loss
+            loss = criterion(outputs, batch_y.unsqueeze(1))
+            loss.backward()
+            optimizer.step()
+            
+            total_loss += loss.item()
+        
+        # Combine all batches
+        y_true = torch.cat(all_y_true)
+        y_pred = torch.cat(all_y_pred)
+        
+        # Calculate average loss and other metrics
+        avg_loss = total_loss / len(train_loader)
+        metrics = calculate_financial_metrics(y_true, y_pred)
+        metrics['loss'] = avg_loss
+        
+        return metrics
+
+    def _validate_epoch(self, val_loader, criterion):
+        """Run one epoch of validation"""
+        total_loss = 0
+        all_y_true = []
+        all_y_pred = []
+        
+        with torch.no_grad():
+            for batch_X, batch_y in val_loader:
+                outputs = self.model(batch_X)
+                
+                # Store predictions and actual values
+                all_y_true.append(batch_y)
+                all_y_pred.append(outputs.squeeze())
+                
+                # Calculate MSE loss
+                loss = criterion(outputs, batch_y.unsqueeze(1))
+                total_loss += loss.item()
+        
+        # Combine all batches
+        y_true = torch.cat(all_y_true)
+        y_pred = torch.cat(all_y_pred)
+        
+        # Calculate average loss and other metrics
+        avg_loss = total_loss / len(val_loader)
+        metrics = calculate_financial_metrics(y_true, y_pred)
+        metrics['loss'] = avg_loss
+        
+        return metrics
 
     def predict(self, data: Dict[str, pd.DataFrame]) -> Dict[str, pd.Series]:
         """

@@ -74,6 +74,13 @@ model:
   weight_decay: 0.0001
 
   validation:
+    temporal_checks:
+      enabled: true
+      max_window_size: 21
+    feature_checks:
+      enabled: true
+      correlation_threshold: 0.9
+      suspicious_window: 20
     direction_accuracy_threshold: 0.55  # Minimum directional accuracy
     sharpe_ratio_threshold: 1.0        # Minimum Sharpe ratio
     ic_threshold: 0.05                 # Minimum information coefficient

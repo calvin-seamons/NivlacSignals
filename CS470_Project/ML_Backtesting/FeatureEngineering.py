@@ -9,6 +9,8 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 
+from utils import validate_temporal_split, check_forward_looking_features
+
 class ScalingMethod(Enum):
     STANDARD = "standard"
     ROBUST = "robust"
@@ -388,45 +390,91 @@ class FeatureEngineering:
 
     def transform(self, historical_data: Dict[str, pd.DataFrame], train_size: float = 0.8) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """Transform raw data into features and split into train/test sets"""
-        self.logger.info("Starting feature generation")
-        print("Starting feature generation")
+        print("\n=== Starting Feature Generation with Leakage Prevention ===")
         
-        # Generate features and labels
-        features = self._generate_features(historical_data)
-        labels = self._generate_labels(historical_data)
+        # Sort data by time to ensure temporal order
+        sorted_data = {
+            symbol: df.sort_index() for symbol, df in historical_data.items()
+        }
         
-        # Ensure features and labels are aligned
-        common_index = features.index.intersection(labels.index)
-        features = features.loc[common_index]
-        labels = labels.loc[common_index]
+        # Calculate split point
+        sample_symbol = list(sorted_data.keys())[0]
+        total_dates = len(sorted_data[sample_symbol])
+        split_idx = int(total_dates * train_size)
+        split_date = sorted_data[sample_symbol].index[split_idx]
         
-        # Scale features
-        scaled_features = self._scale_features(features)
+        print(f"\nTemporal split date: {split_date}")
+        
+        # Split data before feature generation to prevent leakage
+        train_data = {
+            symbol: df.loc[:split_date] 
+            for symbol, df in sorted_data.items()
+        }
+        test_data = {
+            symbol: df.loc[split_date:] 
+            for symbol, df in sorted_data.items()
+        }
+        
+        # Generate and scale features separately for train and test
+        print("\n=== Processing Training Data ===")
+        train_features = self._generate_features(train_data)
+        train_labels = self._generate_labels(train_data)
+        
+        # Check for forward-looking features in training data
+        if self.config['validation'].get('feature_checks', {}).get('enabled', True):
+            print(check_forward_looking_features(train_features))
+        
+        # Fit scalers on training data only
+        self._fit_scalers(train_features)
+        
+        # Scale training data
+        scaled_train_features = self._transform_features(train_features)
+        
+        print("\n=== Processing Test Data ===")
+        test_features = self._generate_features(test_data)
+        test_labels = self._generate_labels(test_data)
+        
+        # Scale test data using scalers fit on training data
+        scaled_test_features = self._transform_features(test_features)
         
         # Create sequences
-        X = self._create_sequences(scaled_features, self.sequence_length)
+        X_train = self._create_sequences(scaled_train_features, self.sequence_length)
+        X_test = self._create_sequences(scaled_test_features, self.sequence_length)
         
-        # Log shapes for debugging
-        self.logger.info(f"X shape before sequence creation: {scaled_features.shape}")
-        self.logger.info(f"X shape after sequence creation: {X.shape}")
+        # Adjust labels
+        y_train = train_labels[self.sequence_length-1:].values
+        y_test = test_labels[self.sequence_length-1:].values
         
-        # Adjust labels to match sequence length
-        labels = labels[self.sequence_length-1:].values
+        # Verify temporal validity
+        train_dates = train_features.index
+        test_dates = test_features.index
+        if not validate_temporal_split(train_dates, test_dates):
+            raise ValueError("Temporal split validation failed - potential data leakage detected")
         
-        # Ensure X and labels have the same number of samples
-        min_len = min(len(X), len(labels))
-        X = X[:min_len]
-        y = labels[:min_len]
+        print("\n=== Data Split Statistics ===")
+        print(f"Training dates: {min(train_dates)} to {max(train_dates)}")
+        print(f"Testing dates: {min(test_dates)} to {max(test_dates)}")
         
-        # Final shape verification
-        self.logger.info(f"Final X shape: {X.shape}, y shape: {y.shape}")
+        return X_train, X_test, y_train, y_test
+
+    def _fit_scalers(self, features: pd.DataFrame) -> None:
+        """Fit scalers on training data only"""
+        for group in self.feature_groups:
+            group_cols = [col for col in features.columns if col.startswith(f'{group.name}_')]
+            if group_cols:
+                self.scalers[group.name].fit(features[group_cols])
+
+    def _transform_features(self, features: pd.DataFrame) -> np.ndarray:
+        """Transform features using pre-fit scalers"""
+        scaled_features = pd.DataFrame(index=features.index)
         
-        # Verify dimensions before split
-        assert X.ndim == 3, f"Expected X to be 3D, got {X.ndim}D instead"
-        assert y.ndim == 1, f"Expected y to be 1D, got {y.ndim}D instead"
+        for group in self.feature_groups:
+            group_cols = [col for col in features.columns if col.startswith(f'{group.name}_')]
+            if group_cols:
+                scaled = self.scalers[group.name].transform(features[group_cols])
+                scaled_features[group_cols] = scaled
         
-        # Split data
-        return train_test_split(X, y, train_size=train_size, shuffle=False)
+        return scaled_features.values
 
     def transform_predict(self, data: Dict[str, pd.DataFrame]) -> Dict[str, np.ndarray]:
         """Transform data for prediction"""
