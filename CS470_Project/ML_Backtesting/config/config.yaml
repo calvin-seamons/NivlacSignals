@@ -1,55 +1,55 @@
-# Existing logging configuration
+# Logging Configuration
 logging:
   level: "INFO"
   format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
   file: "trading.log"
 
-# Existing paths configuration
+# Paths Configuration
 paths:
   base_dir: "./backtesting"
   data_dir: "./backtesting/data"
   model_dir: "./backtesting/models"
   results_dir: "./backtesting/results"
   log_dir: "./backtesting/logs"
-  db_path: 'data/db/market_data.db'
-  cache_dir: 'data/cache'
-  metadata_dir: 'data/cache/metadata'
-  daily_data_dir: 'data/cache/daily_data'
-  temp_dir: 'data/cache/temp/downloads'
+  db_path: "data/db/market_data.db"
+  cache_dir: "data/cache"
+  metadata_dir: "data/cache/metadata"
+  daily_data_dir: "data/cache/daily_data"
+  temp_dir: "data/cache/temp/downloads"
 
-# Existing cache configuration
+# Cache Configuration
 cache:
   max_memory_cache_size: 1000
   cache_expiry_days: 1
-  update_frequency: '1d'
-  compression_type: 'parquet'
+  update_frequency: "1d"
+  compression_type: "parquet"
 
-# Existing download configuration
+# Download Configuration
 download:
   max_retries: 3
   retry_delay: 5
   batch_size: 100
   timeout: 30
 
-# Existing validation configuration
+# Validation Configuration
 validation:
   min_data_points: 50
   max_missing_pct: 0.1
   price_threshold: 5.00
 
-# Existing factor pipeline configuration
+# Factor Pipeline Configuration
 factor_pipeline:
   model_weight: 0.5
   mean_reversion_weight: 0.5
   min_score_threshold: 0.1
 
-# Existing portfolio strategy configuration
+# Portfolio Strategy Configuration
 portfolio_strategy:
   max_position_size: 0.10
 
-# Updated and New Model Configuration
+# Model Configuration
 model:
-  # Model versioning and type
+  # Model Versioning and Type
   version: "v1.0"
   type: "LSTM"
   input_size: 49
@@ -73,6 +73,7 @@ model:
   dropout: 0.2
   weight_decay: 0.0001
 
+  # Validation Parameters
   validation:
     temporal_checks:
       enabled: true
@@ -85,7 +86,7 @@ model:
     sharpe_ratio_threshold: 1.0        # Minimum Sharpe ratio
     ic_threshold: 0.05                 # Minimum information coefficient
   
-  # Training parameters
+  # Learning Rate Scheduler
   lr_scheduler:
     factor: 0.5
     patience: 5
@@ -146,7 +147,30 @@ features:
     fill_method: "ffill"
     minimum_periods: 20
 
-# Mean Reversion Configuration (existing)
+# Mean Reversion Configuration
 mean_reversion:
   lookback: 20
   z_score_threshold: 1.5
+
+# Hyperparameter Search Configuration
+hyperparameter_search:
+  # LSTM Architecture Search Space
+  hidden_size: [32, 64, 128, 256]
+  num_layers: [1, 2, 3, 4]
+  dropout: [0.1, 0.2, 0.3, 0.5]
+  
+  # Sequence Parameters
+  sequence_length: [5, 10, 20, 30]
+  
+  # Training Parameters
+  batch_size: [16, 32, 64, 128]
+  learning_rate: [0.0001, 0.001, 0.01]
+  weight_decay: [0.0001, 0.001, 0.01]
+  
+  # Lookback Buffer
+  lookback_buffer: 10
+  
+  # Search Configuration
+  optimization_tool: "optuna"  # Tool for optimization
+  max_trials: 50              # Number of trials
+  direction: "minimize"        # Optimization direction
