@@ -150,9 +150,16 @@ class MLModel:
         # Try to load existing model
         self._load_model()
 
-    def train(self, historical_data: Dict[str, pd.DataFrame]) -> None:
-        """Train the model using provided historical data with financial metrics"""
-        print("\n=== Starting Model Training Process ===")
+    def prepare_datasets(self, historical_data: Dict[str, pd.DataFrame]) -> Tuple[DataLoader, DataLoader]:
+        """
+        Prepare training and validation datasets
+        
+        Args:
+            historical_data (Dict[str, pd.DataFrame]): Historical price data
+            
+        Returns:
+            Tuple[DataLoader, DataLoader]: Train and validation data loaders
+        """
         try:
             # Get features and create loaders
             X_train, X_val, y_train, y_val = self.feature_engineering.transform(
@@ -176,14 +183,36 @@ class MLModel:
                 shuffle=False
             )
             
-            # Initialize model with dropout
-            input_size = X_train.shape[2]
-            self.model = LSTM(
-                input_size=input_size,
-                hidden_size=self.hidden_size,
-                num_layers=self.num_layers,
-                dropout=self.config['model'].get('dropout', 0.2)
-            )
+            # Store input size for model initialization
+            self.input_size = X_train.shape[2]
+            
+            return train_loader, val_loader
+            
+        except Exception as e:
+            print(f"\n!!! Error during dataset preparation !!!")
+            print(f"Error type: {type(e).__name__}")
+            print(f"Error message: {str(e)}")
+            traceback.print_exc()
+            raise
+
+    def train(self, train_loader: DataLoader, val_loader: DataLoader) -> None:
+        """
+        Train the model using prepared data loaders
+        
+        Args:
+            train_loader (DataLoader): Training data loader
+            val_loader (DataLoader): Validation data loader
+        """
+        print("\n=== Starting Model Training Process ===")
+        try:
+            # Initialize model with dropout if not already initialized
+            if self.model is None:
+                self.model = LSTM(
+                    input_size=self.input_size,
+                    hidden_size=self.hidden_size,
+                    num_layers=self.num_layers,
+                    dropout=self.config['model'].get('dropout', 0.2)
+                )
             
             # Loss and optimizer
             criterion = nn.MSELoss()
