@@ -68,6 +68,9 @@ class MLModel:
         self.feature_engineering = FeatureEngineering(config)
         self.scaler = None
         
+        # Generate config fingerprint
+        self.config_fingerprint = self._generate_config_fingerprint()
+            
         # Get model parameters for filename
         model_version = config['model']['version']
         n_layers = config['model'].get('num_layers', 2)
@@ -111,8 +114,8 @@ class MLModel:
         self.num_epochs = config['model'].get('num_epochs', 100)
         self.learning_rate = config['model'].get('learning_rate', 0.001)
         
-        # Try to load existing model
-        self._load_model()
+        # Try to load existing model with fingerprint validation
+        self._load_model(validate_fingerprint=True)
 
     def _initialize_model(self) -> None:
         """Initialize the improved LSTM model"""
@@ -130,6 +133,29 @@ class MLModel:
         
         # Initialize model
         self.model = ImprovedLSTM(model_config)
+
+    def _generate_config_fingerprint(self) -> str:
+        """Generate a unique fingerprint for the current model and feature configuration"""
+        import hashlib
+        
+        # Extract relevant configuration parameters
+        model_config = {
+            'architecture': {
+                'input_size': self.config['model']['input_size'],
+                'hidden_size': self.config['model'].get('hidden_size'),
+                'num_layers': self.config['model'].get('num_layers'),
+                'bidirectional': self.config['model'].get('bidirectional'),
+                'attention_heads': self.config['model'].get('attention_heads'),
+                'use_layer_norm': self.config['model'].get('use_layer_norm'),
+                'residual_connections': self.config['model'].get('residual_connections')
+            },
+            'features': self.config.get('features', {}),
+            'version': self.config['model']['version']
+        }
+        
+        # Create fingerprint
+        config_str = json.dumps(model_config, sort_keys=True)
+        return hashlib.sha256(config_str.encode()).hexdigest()
 
     def prepare_datasets(self, historical_data: Dict[str, pd.DataFrame]) -> Tuple[DataLoader, DataLoader]:
         """
@@ -176,7 +202,7 @@ class MLModel:
             traceback.print_exc()
             raise
 
-    def train(self, train_loader: DataLoader, val_loader: DataLoader) -> None:
+    def train(self, train_loader: DataLoader, val_loader: DataLoader, force_rebuild: bool = False) -> None:
         """
         Train the model using prepared data loaders
         
@@ -227,7 +253,7 @@ class MLModel:
         print("----------------------------------------")
         try:
             # Initialize model if not already initialized
-            if self.model is None:
+            if self.model is None or force_rebuild:
                 self._initialize_model()
             
             # Get optimizer and scheduler from model
@@ -358,45 +384,99 @@ class MLModel:
         
         return metrics
 
-    def predict(self, data: Dict[str, pd.DataFrame]) -> Dict[str, pd.Series]:
-        """
-        Generate predictions for input data
-        
-        Args:
-            data (Dict[str, pd.DataFrame]): Dictionary mapping symbols to OHLCV DataFrames
+    def _save_model(self) -> None:
+        """Save model, metadata, and scaler"""
+        try:
+            # Save model
+            torch.save(self.model.state_dict(), self.model_path)
             
-        Returns:
-            Dict[str, pd.Series]: Dictionary mapping symbols to their predictions
-        """
+            # Save metadata with config fingerprint and full configuration
+            metadata = {
+                'version': self.config['model']['version'],
+                'training_date': datetime.now().isoformat(),
+                'model_type': 'ImprovedLSTM',
+                'config_fingerprint': self.config_fingerprint,
+                'parameters': {
+                    'architecture': {
+                        'input_size': self.config['model']['input_size'],
+                        'hidden_size': self.hidden_size,
+                        'num_layers': self.num_layers,
+                        'bidirectional': self.config['model'].get('bidirectional', True),
+                        'attention_heads': self.config['model'].get('attention_heads', 4),
+                        'use_layer_norm': self.config['model'].get('use_layer_norm', True),
+                        'residual_connections': self.config['model'].get('residual_connections', True)
+                    },
+                    'sequence_length': self.sequence_length,
+                    'features': self.config.get('features', {})  # Save the entire features config
+                },
+                'feature_engineering': self.feature_engineering.get_config()  # Add this line to save feature engineering state
+            }
+            
+            with open(self.metadata_path, 'w') as f:
+                json.dump(metadata, f, indent=4)
+            
+            # Save scaler
+            if self.scaler is not None:
+                joblib.dump(self.scaler, self.scaler_path)
+            
+            self.logger.info("Successfully saved model and metadata")
+            
+        except Exception as e:
+            self.logger.error(f"Error saving model: {str(e)}")
+            raise
+
+    def predict(self, data: Dict[str, pd.DataFrame]) -> Dict[str, pd.Series]:
+        """Generate predictions for input data"""
         self.logger.info(f"Starting prediction process for {len(data)} symbols")
         
         try:
             # Load model if not loaded
             if self.model is None:
-                self._load_model()
+                self._load_model(validate_fingerprint=True)
                 if self.model is None:
-                    self.logger.warning("No trained model found. Please train the model first.")
-                    raise ValueError("No trained model available")
+                    raise ValueError("No compatible trained model available")
             
-            # Feature engineering
-            features = self.feature_engineering.transform_predict(data)
+            # Safely get feature configuration from metadata
+            if hasattr(self, 'metadata'):
+                feature_config = (
+                    self.metadata.get('feature_engineering') or 
+                    self.metadata.get('parameters', {}).get('features', {})
+                )
+                if feature_config:
+                    self.feature_engineering.update_config(feature_config)
+                else:
+                    self.logger.warning("No feature configuration found in metadata, using current config")
+            
+            # Feature engineering with error handling
+            try:
+                features = self.feature_engineering.transform_predict(data)
+            except Exception as e:
+                self.logger.error(f"Error during feature engineering: {str(e)}")
+                raise
             
             # Make predictions
             self.model.eval()
             predictions = {}
             
             with torch.no_grad():
-                for symbol in data.keys():
-                    # Get features for this symbol
-                    symbol_features = torch.FloatTensor(features[symbol]).unsqueeze(0)
-                    
-                    # Generate prediction
-                    pred = self.model(symbol_features)
-                    predictions[symbol] = pd.Series(
-                        pred.numpy().flatten(),
-                        index=data[symbol].index[-len(pred):]
-                    )
+                for symbol in features.keys():  # Only iterate over symbols that have features
+                    try:
+                        # Get features for this symbol
+                        symbol_features = torch.FloatTensor(features[symbol]).unsqueeze(0)
+                        
+                        # Generate prediction
+                        pred = self.model(symbol_features)
+                        predictions[symbol] = pd.Series(
+                            pred.numpy().flatten(),
+                            index=data[symbol].index[-len(pred):]
+                        )
+                    except Exception as e:
+                        self.logger.error(f"Error predicting for symbol {symbol}: {str(e)}")
+                        continue
             
+            if not predictions:
+                raise ValueError("No valid predictions could be generated")
+                
             return predictions
                 
         except Exception as e:
@@ -448,50 +528,42 @@ class MLModel:
         metrics = self._validate_epoch(val_loader, criterion)
         return metrics
 
-    def _load_model(self) -> None:
-        """Load saved model and metadata if they exist"""
+    def _load_model(self, validate_fingerprint: bool = True) -> None:
+        """Load saved model and validate against current configuration"""
         try:
             if os.path.exists(self.model_path):
                 print("\nFound existing model checkpoint")
+                
+                # Load metadata first
+                with open(self.metadata_path, 'r') as f:
+                    self.metadata = json.load(f)
+                
+                # Validate configuration if requested
+                if validate_fingerprint:
+                    stored_fingerprint = self.metadata.get('config_fingerprint')
+                    if stored_fingerprint != self.config_fingerprint:
+                        print("Model configuration mismatch - will train new model")
+                        return
+                
                 try:
-                    # Create model config
-                    model_config = LSTMConfig(
-                        input_size=self.config['model']['input_size'],
-                        hidden_size=self.hidden_size,
-                        num_layers=self.num_layers,
-                        dropout=self.config['model'].get('dropout', 0.2),
-                        bidirectional=self.config['model'].get('bidirectional', True),
-                        attention_heads=self.config['model'].get('attention_heads', 4),
-                        use_layer_norm=self.config['model'].get('use_layer_norm', True),
-                        residual_connections=self.config['model'].get('residual_connections', True)
-                    )
+                    # Create model config from metadata (not current config)
+                    model_config = LSTMConfig(**self.metadata['parameters']['architecture'])
                     
-                    # Initialize model
+                    # Initialize and load model
                     self.model = ImprovedLSTM(model_config)
-                    
-                    # Load state dict
                     self.model.load_state_dict(torch.load(self.model_path))
                     self.model.eval()
-                    
-                    # Load metadata
-                    with open(self.metadata_path, 'r') as f:
-                        self.metadata = json.load(f)
                     
                     # Load scaler
                     if os.path.exists(self.scaler_path):
                         self.scaler = joblib.load(self.scaler_path)
                     
                     print("Successfully loaded existing model and metadata")
+                    
                 except Exception as e:
                     print(f"Warning: Could not load existing model due to: {str(e)}")
                     print("Will train a new model instead")
-                    # Remove old model files since they're incompatible
-                    if os.path.exists(self.model_path):
-                        os.remove(self.model_path)
-                    if os.path.exists(self.metadata_path):
-                        os.remove(self.metadata_path)
-                    if os.path.exists(self.scaler_path):
-                        os.remove(self.scaler_path)
+                    self._cleanup_model_files()
                     self.model = None
             else:
                 print("\nNo existing model found - will train a new one")
@@ -502,40 +574,11 @@ class MLModel:
             print("Will train a new model instead")
             self.model = None
 
-    def _save_model(self) -> None:
-        """Save model, metadata, and scaler"""
-        try:
-            # Save model
-            torch.save(self.model.state_dict(), self.model_path)
-            
-            # Save metadata with additional parameters
-            metadata = {
-                'version': self.config['model']['version'],
-                'training_date': datetime.now().isoformat(),
-                'model_type': 'ImprovedLSTM',
-                'parameters': {
-                    'sequence_length': self.sequence_length,
-                    'hidden_size': self.hidden_size,
-                    'num_layers': self.num_layers,
-                    'bidirectional': self.config['model'].get('bidirectional', True),
-                    'attention_heads': self.config['model'].get('attention_heads', 4),
-                    'use_layer_norm': self.config['model'].get('use_layer_norm', True),
-                    'residual_connections': self.config['model'].get('residual_connections', True)
-                }
-            }
-            
-            with open(self.metadata_path, 'w') as f:
-                json.dump(metadata, f, indent=4)
-            
-            # Save scaler
-            if self.scaler is not None:
-                joblib.dump(self.scaler, self.scaler_path)
-            
-            self.logger.info("Successfully saved model and metadata")
-            
-        except Exception as e:
-            self.logger.error(f"Error saving model: {str(e)}")
-            raise
+    def _cleanup_model_files(self):
+        """Remove existing model files"""
+        for path in [self.model_path, self.metadata_path, self.scaler_path]:
+            if os.path.exists(path):
+                os.remove(path)
 
     def optimize_hyperparameters(self, historical_data: Dict[str, pd.DataFrame]) -> Dict:
         """

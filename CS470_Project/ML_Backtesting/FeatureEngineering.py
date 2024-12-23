@@ -57,6 +57,14 @@ class FeatureEngineering:
             else:
                 self.scalers[group.name] = RobustScaler()
 
+    def get_config(self) -> Dict:
+        """Return current feature engineering configuration"""
+        return self.config
+        
+    def update_config(self, config: Dict) -> None:
+        """Update feature engineering configuration"""
+        self.config = config
+
     def _generate_price_features(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Generate price-based features with proper handling of infinities, zeros, and negative values.
@@ -346,16 +354,7 @@ class FeatureEngineering:
         return labels
 
     def _create_sequences(self, data: np.ndarray, sequence_length: int) -> np.ndarray:
-        """
-        Create sequences for LSTM input
-        
-        Args:
-            data (np.ndarray): Input data
-            sequence_length (int): Length of sequences
-                
-        Returns:
-            np.ndarray: Sequences ready for LSTM
-        """
+        """Create sequences for LSTM input"""
         print("\n=== Creating Sequences ===")
         print(f"Input data shape: {data.shape}")
         
@@ -369,6 +368,10 @@ class FeatureEngineering:
         
         print(f"Data shape after removing symbol column: {data.shape}")
         
+        # Check if we have enough data
+        if len(data) < sequence_length:
+            raise ValueError(f"Not enough data points ({len(data)}) for sequence length {sequence_length}")
+        
         # Create sequences
         n_samples = len(data) - sequence_length + 1
         n_features = data.shape[1]
@@ -377,6 +380,12 @@ class FeatureEngineering:
         print(f"n_samples: {n_samples}")
         print(f"sequence_length: {sequence_length}")
         print(f"n_features: {n_features}")
+        
+        # Additional validation
+        if n_samples <= 0:
+            raise ValueError(f"Invalid n_samples: {n_samples}. Data length: {len(data)}, sequence_length: {sequence_length}")
+        if n_features <= 0:
+            raise ValueError(f"Invalid n_features: {n_features}")
         
         # Initialize output array
         sequences = np.zeros((n_samples, sequence_length, n_features))
@@ -478,19 +487,50 @@ class FeatureEngineering:
 
     def transform_predict(self, data: Dict[str, pd.DataFrame]) -> Dict[str, np.ndarray]:
         """Transform data for prediction"""
-        # Generate features
-        features = self._generate_features(data)
+        print("\n=== Starting prediction transformation ===")
         
-        # Scale features using fitted scalers
-        scaled_features = self._scale_features(features)
-        
-        # Create sequences by symbol
-        sequences = {}
-        for symbol in data.keys():
-            symbol_data = scaled_features[features['symbol'] == symbol]
-            sequences[symbol] = self._create_sequences(
-                symbol_data,
-                self.sequence_length
-            )
+        try:
+            # Generate features
+            print("Generating features...")
+            features = self._generate_features(data)
+            print(f"Generated features shape: {features.shape}")
             
-        return sequences
+            # Scale features using fitted scalers
+            print("Scaling features...")
+            scaled_features = self._scale_features(features)
+            print(f"Scaled features shape: {scaled_features.shape}")
+            
+            # Create sequences by symbol
+            sequences = {}
+            for symbol in data.keys():
+                print(f"\nProcessing symbol: {symbol}")
+                
+                # Get symbol data
+                symbol_mask = features['symbol'] == symbol
+                symbol_data = scaled_features[symbol_mask]
+                
+                print(f"Symbol data shape before sequence creation: {symbol_data.shape}")
+                
+                # Ensure we have enough data
+                if len(symbol_data) < self.sequence_length:
+                    print(f"Warning: Not enough data for {symbol} to create sequences")
+                    continue
+                    
+                try:
+                    sequences[symbol] = self._create_sequences(
+                        symbol_data,
+                        self.sequence_length
+                    )
+                    print(f"Created sequences for {symbol} with shape: {sequences[symbol].shape}")
+                except Exception as e:
+                    print(f"Error creating sequences for {symbol}: {str(e)}")
+                    continue
+            
+            if not sequences:
+                raise ValueError("No valid sequences could be created for any symbol")
+                
+            return sequences
+            
+        except Exception as e:
+            print(f"Error in transform_predict: {str(e)}")
+            raise
