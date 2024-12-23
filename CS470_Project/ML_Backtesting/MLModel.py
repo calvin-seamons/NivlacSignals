@@ -184,7 +184,47 @@ class MLModel:
             train_loader (DataLoader): Training data loader
             val_loader (DataLoader): Validation data loader
         """
-        print("\n=== Starting Model Training Process ===")
+        print("\n====== Starting Model Training Process ======")
+        print("\nModel Configuration:")
+        print("----------------------------------------")
+        print(f"Model Type: {self.config['model']['type']}")
+        print(f"Model Version: {self.config['model']['version']}")
+        print("\nArchitecture Parameters:")
+        print(f"Input Size: {self.input_size}")
+        print(f"Hidden Size: {self.hidden_size}")
+        print(f"Number of Layers: {self.num_layers}")
+        print(f"Sequence Length: {self.sequence_length}")
+        print(f"Bidirectional: {self.config['model'].get('bidirectional', True)}")
+        print(f"Attention Heads: {self.config['model'].get('attention_heads', 4)}")
+        print(f"Layer Normalization: {self.config['model'].get('use_layer_norm', True)}")
+        print(f"Residual Connections: {self.config['model'].get('residual_connections', True)}")
+        
+        print("\nTraining Parameters:")
+        print(f"Batch Size: {self.batch_size}")
+        print(f"Number of Epochs: {self.num_epochs}")
+        print(f"Learning Rate: {self.learning_rate}")
+        print(f"Weight Decay: {self.config['model'].get('weight_decay', 0.01)}")
+        print(f"Dropout Rate: {self.config['model'].get('dropout', 0.2)}")
+        
+        print("\nOptimizer Configuration:")
+        print(f"Optimizer: AdamW")
+        print(f"Learning Rate Scheduler: OneCycleLR")
+        print(f"LR Scheduler Max LR: {self.config['model'].get('lr_scheduler', {}).get('max_lr', 0.01)}")
+        print(f"LR Scheduler Pct Start: {self.config['model'].get('lr_scheduler', {}).get('pct_start', 0.3)}")
+        
+        print("\nEarly Stopping Configuration:")
+        print(f"Patience: {self.config['model'].get('early_stopping_patience', 10)}")
+        print(f"Min Delta: {self.config['model'].get('min_delta', 0.001)}")
+        
+        print("\nDataset Information:")
+        print(f"Training Batches: {len(train_loader)}")
+        print(f"Validation Batches: {len(val_loader)}")
+        print(f"Samples per Batch: {self.batch_size}")
+        total_train = len(train_loader) * self.batch_size
+        total_val = len(val_loader) * self.batch_size
+        print(f"Total Training Samples: {total_train}")
+        print(f"Total Validation Samples: {total_val}")
+        print("----------------------------------------")
         try:
             # Initialize model if not already initialized
             if self.model is None:

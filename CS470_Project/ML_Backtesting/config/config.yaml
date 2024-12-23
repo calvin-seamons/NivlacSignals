@@ -52,30 +52,30 @@ model:
   # Model Versioning and Type
   version: "v2.0"
   type: "ImprovedLSTM"
-  input_size: 49
+  input_size: 49  # Matches the input size from model configuration
   
-  # LSTM Architecture
-  sequence_length: 10
-  hidden_size: 128  # Increased for more capacity
-  num_layers: 2
-  bidirectional: true  # New parameter for bidirectional LSTM
-  attention_heads: 4   # New parameter for multi-head attention
-  use_layer_norm: true # New parameter for layer normalization
-  residual_connections: true # New parameter for residual connections
+  # LSTM Architecture - Updated to match best parameters and actual model
+  sequence_length: 10      # From best parameters
+  hidden_size: 256        # From best parameters
+  num_layers: 2          # From best parameters
+  bidirectional: true    # From model configuration
+  attention_heads: 4     # From model configuration (128/32 = 4 heads)
+  use_layer_norm: true   # From model configuration
+  residual_connections: true
   
-  # Training Parameters
-  batch_size: 32
+  # Training Parameters - Updated to match best parameters
+  batch_size: 128        # From best parameters
   num_epochs: 100
-  learning_rate: 0.001
+  learning_rate: 0.001   # From best parameters
   train_test_split: 0.8
   
   # Early Stopping
   early_stopping_patience: 10
   min_delta: 0.001
   
-  # Regularization
-  dropout: 0.2
-  weight_decay: 0.0001
+  # Regularization - Updated to match best parameters
+  dropout: 0.2           # From best parameters
+  weight_decay: 0.01     # From best parameters
 
   # Validation Parameters
   validation:
@@ -92,7 +92,7 @@ model:
   
   # Learning Rate Scheduler
   lr_scheduler:
-    type: "onecycle"  # Changed from ReduceLROnPlateau to OneCycleLR
+    type: "onecycle"
     max_lr: 0.01
     pct_start: 0.3
     anneal_strategy: "cos"
@@ -159,24 +159,24 @@ mean_reversion:
 
 # Hyperparameter Search Configuration
 hyperparameter_search:
-  # LSTM Architecture Search Space
-  hidden_size: [64, 128, 256, 512]  # Increased sizes for more capacity
-  num_layers: [1, 2, 3, 4]
-  dropout: [0.1, 0.2, 0.3, 0.4]
-  attention_heads: [2, 4, 8]  # New parameter for attention heads
+  # LSTM Architecture Search Space - Adjusted to include best found values
+  hidden_size: [128, 256, 512]  # 256 was best
+  num_layers: [1, 2, 3]         # 2 was best
+  dropout: [0.1, 0.2, 0.3]      # 0.2 was best
+  attention_heads: [2, 4, 8]     
   
   # Architecture Options
-  bidirectional: [true, false]  # New parameter
-  use_layer_norm: [true, false] # New parameter
-  residual_connections: [true, false] # New parameter
+  bidirectional: [true, false]
+  use_layer_norm: [true]        # Layer norm was successful
+  residual_connections: [true]   # Residual connections were successful
   
   # Sequence Parameters
-  sequence_length: [5, 10, 20, 30]
+  sequence_length: [5, 10, 20]   # 10 was best
   
   # Training Parameters
-  batch_size: [16, 32, 64, 128]
-  learning_rate: [0.0001, 0.001, 0.01]
-  weight_decay: [0.0001, 0.001, 0.01]
+  batch_size: [32, 64, 128]     # 128 was best
+  learning_rate: [0.0001, 0.001, 0.01]  # 0.001 was best
+  weight_decay: [0.001, 0.01, 0.1]      # 0.01 was best
   
   # Lookback Buffer
   lookback_buffer: 10

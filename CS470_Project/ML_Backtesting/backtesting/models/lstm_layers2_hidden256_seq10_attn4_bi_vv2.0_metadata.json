@@ -1,10 +1,10 @@
 {
     "version": "v2.0",
-    "training_date": "2024-12-22T19:32:54.976655",
+    "training_date": "2024-12-22T19:57:51.032269",
     "model_type": "ImprovedLSTM",
     "parameters": {
         "sequence_length": 10,
-        "hidden_size": 128,
+        "hidden_size": 256,
         "num_layers": 1,
         "bidirectional": true,
         "attention_heads": 4,
