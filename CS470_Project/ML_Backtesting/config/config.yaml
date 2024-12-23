@@ -50,14 +50,18 @@ portfolio_strategy:
 # Model Configuration
 model:
   # Model Versioning and Type
-  version: "v1.0"
-  type: "LSTM"
+  version: "v2.0"
+  type: "ImprovedLSTM"
   input_size: 49
   
   # LSTM Architecture
   sequence_length: 10
-  hidden_size: 64
+  hidden_size: 128  # Increased for more capacity
   num_layers: 2
+  bidirectional: true  # New parameter for bidirectional LSTM
+  attention_heads: 4   # New parameter for multi-head attention
+  use_layer_norm: true # New parameter for layer normalization
+  residual_connections: true # New parameter for residual connections
   
   # Training Parameters
   batch_size: 32
@@ -88,9 +92,10 @@ model:
   
   # Learning Rate Scheduler
   lr_scheduler:
-    factor: 0.5
-    patience: 5
-    min_lr: 0.00001
+    type: "onecycle"  # Changed from ReduceLROnPlateau to OneCycleLR
+    max_lr: 0.01
+    pct_start: 0.3
+    anneal_strategy: "cos"
 
 # Feature Engineering Configuration
 features:
@@ -155,9 +160,15 @@ mean_reversion:
 # Hyperparameter Search Configuration
 hyperparameter_search:
   # LSTM Architecture Search Space
-  hidden_size: [32, 64, 128, 256]
+  hidden_size: [64, 128, 256, 512]  # Increased sizes for more capacity
   num_layers: [1, 2, 3, 4]
-  dropout: [0.1, 0.2, 0.3, 0.5]
+  dropout: [0.1, 0.2, 0.3, 0.4]
+  attention_heads: [2, 4, 8]  # New parameter for attention heads
+  
+  # Architecture Options
+  bidirectional: [true, false]  # New parameter
+  use_layer_norm: [true, false] # New parameter
+  residual_connections: [true, false] # New parameter
   
   # Sequence Parameters
   sequence_length: [5, 10, 20, 30]

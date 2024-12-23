@@ -14,6 +14,7 @@ from FeatureEngineering import FeatureEngineering
 from HyperparameterOptimizer import HyperparameterOptimizer
 
 from utils import calculate_financial_metrics
+from LSTM import LSTMConfig, ImprovedLSTM
 
 class TimeSeriesDataset(Dataset):
     """Custom Dataset for LSTM input"""
@@ -49,52 +50,6 @@ class TimeSeriesDataset(Dataset):
         """
         return self.X[idx], self.y[idx]
 
-class LSTM(nn.Module):
-    def __init__(self, input_size: int, hidden_size: int, num_layers: int, dropout: float = 0.2):
-        super(LSTM, self).__init__()
-        self.hidden_size = hidden_size
-        self.num_layers = num_layers
-        
-        # Batch normalization for inputs
-        self.batch_norm = nn.BatchNorm1d(input_size)
-        
-        # LSTM with dropout between layers
-        self.lstm = nn.LSTM(
-            input_size=input_size,
-            hidden_size=hidden_size,
-            num_layers=num_layers,
-            dropout=dropout,
-            batch_first=True
-        )
-        
-        # Additional dropout before final layer
-        self.dropout = nn.Dropout(dropout)
-        
-        # Final fully connected layer
-        self.fc = nn.Linear(hidden_size, 1)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        batch_size, seq_len, features = x.size()
-        
-        # Apply batch normalization to each timestep
-        x = x.reshape(-1, features)
-        x = self.batch_norm(x)
-        x = x.reshape(batch_size, seq_len, features)
-        
-        # Initialize hidden state
-        h0 = torch.zeros(self.num_layers, batch_size, self.hidden_size).to(x.device)
-        c0 = torch.zeros(self.num_layers, batch_size, self.hidden_size).to(x.device)
-        
-        # Forward propagate LSTM
-        lstm_out, _ = self.lstm(x, (h0, c0))
-        
-        # Get last timestep output and apply dropout
-        out = self.dropout(lstm_out[:, -1, :])
-        
-        # Final prediction
-        out = self.fc(out)
-        return out
-
 class MLModel:
     """
     Machine Learning Model Manager
@@ -116,11 +71,19 @@ class MLModel:
         # Get model parameters for filename
         model_version = config['model']['version']
         n_layers = config['model'].get('num_layers', 2)
-        hidden_size = config['model'].get('hidden_size', 64)
+        hidden_size = config['model'].get('hidden_size', 128)
         sequence_length = config['model'].get('sequence_length', 10)
         
-        # Create descriptive filename
-        model_name = f"lstm_layers{n_layers}_hidden{hidden_size}_seq{sequence_length}_v{model_version}"
+        # Additional parameters for improved LSTM
+        attention_heads = config['model'].get('attention_heads', 4)
+        bidirectional = config['model'].get('bidirectional', True)
+        
+        # Create descriptive filename including new parameters
+        model_name = (
+            f"lstm_layers{n_layers}_hidden{hidden_size}_"
+            f"seq{sequence_length}_attn{attention_heads}_"
+            f"{'bi' if bidirectional else 'uni'}_v{model_version}"
+        )
         
         # Setup paths
         self.model_dir = config['paths']['model_dir']
@@ -140,7 +103,7 @@ class MLModel:
         # Create directories if they don't exist
         os.makedirs(self.model_dir, exist_ok=True)
         
-        # LSTM parameters
+        # Model parameters
         self.sequence_length = sequence_length
         self.hidden_size = hidden_size
         self.num_layers = n_layers
@@ -150,6 +113,23 @@ class MLModel:
         
         # Try to load existing model
         self._load_model()
+
+    def _initialize_model(self) -> None:
+        """Initialize the improved LSTM model"""
+        # Create config for improved LSTM
+        model_config = LSTMConfig(
+            input_size=self.input_size,
+            hidden_size=self.hidden_size,
+            num_layers=self.num_layers,
+            dropout=self.config['model'].get('dropout', 0.2),
+            bidirectional=self.config['model'].get('bidirectional', True),
+            attention_heads=self.config['model'].get('attention_heads', 4),
+            use_layer_norm=self.config['model'].get('use_layer_norm', True),
+            residual_connections=self.config['model'].get('residual_connections', True)
+        )
+        
+        # Initialize model
+        self.model = ImprovedLSTM(model_config)
 
     def prepare_datasets(self, historical_data: Dict[str, pd.DataFrame]) -> Tuple[DataLoader, DataLoader]:
         """
@@ -206,31 +186,18 @@ class MLModel:
         """
         print("\n=== Starting Model Training Process ===")
         try:
-            # Initialize model with dropout if not already initialized
+            # Initialize model if not already initialized
             if self.model is None:
-                self.model = LSTM(
-                    input_size=self.input_size,
-                    hidden_size=self.hidden_size,
-                    num_layers=self.num_layers,
-                    dropout=self.config['model'].get('dropout', 0.2)
-                )
+                self._initialize_model()
             
-            # Loss and optimizer
-            criterion = nn.MSELoss()
-            optimizer = torch.optim.Adam(
-                self.model.parameters(), 
-                lr=self.learning_rate,
+            # Get optimizer and scheduler from model
+            optimizer, scheduler = self.model.configure_optimizers(
+                learning_rate=self.learning_rate,
                 weight_decay=self.config['model'].get('weight_decay', 0.0001)
             )
             
-            # Learning rate scheduler
-            scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-                optimizer, 
-                mode='min', 
-                factor=0.5,
-                patience=5,
-                verbose=True
-            )
+            # Loss function
+            criterion = nn.MSELoss()
             
             # Initialize best metrics
             best_val_metrics = {
@@ -252,7 +219,7 @@ class MLModel:
                 val_metrics = self._validate_epoch(val_loader, criterion)
                 
                 # Learning rate scheduling
-                scheduler.step(val_metrics['loss'])
+                scheduler.step()
                 
                 # Early stopping check based on multiple metrics
                 improvement = (
@@ -447,12 +414,22 @@ class MLModel:
             if os.path.exists(self.model_path):
                 print("\nFound existing model checkpoint")
                 try:
-                    # Try to load the model
-                    self.model = LSTM(
-                        self.config['model']['input_size'],
-                        self.hidden_size,
-                        self.num_layers
+                    # Create model config
+                    model_config = LSTMConfig(
+                        input_size=self.config['model']['input_size'],
+                        hidden_size=self.hidden_size,
+                        num_layers=self.num_layers,
+                        dropout=self.config['model'].get('dropout', 0.2),
+                        bidirectional=self.config['model'].get('bidirectional', True),
+                        attention_heads=self.config['model'].get('attention_heads', 4),
+                        use_layer_norm=self.config['model'].get('use_layer_norm', True),
+                        residual_connections=self.config['model'].get('residual_connections', True)
                     )
+                    
+                    # Initialize model
+                    self.model = ImprovedLSTM(model_config)
+                    
+                    # Load state dict
                     self.model.load_state_dict(torch.load(self.model_path))
                     self.model.eval()
                     
@@ -491,15 +468,19 @@ class MLModel:
             # Save model
             torch.save(self.model.state_dict(), self.model_path)
             
-            # Save metadata
+            # Save metadata with additional parameters
             metadata = {
                 'version': self.config['model']['version'],
                 'training_date': datetime.now().isoformat(),
-                'model_type': 'LSTM',
+                'model_type': 'ImprovedLSTM',
                 'parameters': {
                     'sequence_length': self.sequence_length,
                     'hidden_size': self.hidden_size,
-                    'num_layers': self.num_layers
+                    'num_layers': self.num_layers,
+                    'bidirectional': self.config['model'].get('bidirectional', True),
+                    'attention_heads': self.config['model'].get('attention_heads', 4),
+                    'use_layer_norm': self.config['model'].get('use_layer_norm', True),
+                    'residual_connections': self.config['model'].get('residual_connections', True)
                 }
             }
             
@@ -576,9 +557,4 @@ class MLModel:
         self.learning_rate = parameters.get('learning_rate', self.learning_rate)
         
         # Reinitialize model with new parameters
-        self.model = LSTM(
-            input_size=self.config['model']['input_size'],
-            hidden_size=self.hidden_size,
-            num_layers=self.num_layers,
-            dropout=parameters.get('dropout', 0.2)
-        )
+        self._initialize_model()

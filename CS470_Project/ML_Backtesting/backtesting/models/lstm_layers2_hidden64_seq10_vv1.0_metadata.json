@@ -1,6 +1,6 @@
 {
     "version": "v1.0",
-    "training_date": "2024-12-22T19:08:30.914401",
+    "training_date": "2024-12-22T19:19:27.187165",
     "model_type": "LSTM",
     "parameters": {
         "sequence_length": 10,
