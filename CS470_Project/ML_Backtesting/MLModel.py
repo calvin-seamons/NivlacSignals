@@ -11,6 +11,7 @@ import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 import joblib
 from FeatureEngineering import FeatureEngineering
+from HyperparameterOptimizer import HyperparameterOptimizer
 
 from utils import calculate_financial_metrics
 
@@ -395,6 +396,51 @@ class MLModel:
             self.logger.error(f"Error during prediction: {str(e)}")
             raise
 
+    def train_epoch(self, train_loader) -> Dict[str, float]:
+        """
+        Train for one epoch
+        
+        Args:
+            train_loader (DataLoader): Training data loader
+            
+        Returns:
+            Dict[str, float]: Training metrics
+        """
+        # Initialize model for training
+        self.model.train()
+        
+        # Initialize optimizer and criterion
+        optimizer = torch.optim.Adam(
+            self.model.parameters(), 
+            lr=self.learning_rate,
+            weight_decay=self.config['model'].get('weight_decay', 0.0001)
+        )
+        criterion = nn.MSELoss()
+        
+        # Train one epoch
+        metrics = self._train_epoch(train_loader, optimizer, criterion)
+        return metrics
+
+    def validate(self, val_loader) -> Dict[str, float]:
+        """
+        Validate the model
+        
+        Args:
+            val_loader (DataLoader): Validation data loader
+            
+        Returns:
+            Dict[str, float]: Validation metrics
+        """
+        # Set model to evaluation mode
+        self.model.eval()
+        
+        # Initialize criterion
+        criterion = nn.MSELoss()
+        
+        # Run validation
+        metrics = self._validate_epoch(val_loader, criterion)
+        return metrics
+
     def _load_model(self) -> None:
         """Load saved model and metadata if they exist"""
         try:
@@ -469,3 +515,70 @@ class MLModel:
         except Exception as e:
             self.logger.error(f"Error saving model: {str(e)}")
             raise
+
+    def optimize_hyperparameters(self, historical_data: Dict[str, pd.DataFrame]) -> Dict:
+        """
+        Find optimal hyperparameters for the model
+        
+        Args:
+            historical_data (Dict[str, pd.DataFrame]): Historical price data
+            
+        Returns:
+            Dict: Best hyperparameters found
+        """
+        print("\n=== Starting Hyperparameter Optimization Process ===")
+        
+        try:
+            # Create optimizer
+            optimizer = HyperparameterOptimizer(self.config)
+            
+            # Prepare datasets once for all trials
+            train_loader, val_loader = self.prepare_datasets(historical_data)
+            
+            # Run optimization
+            best_params, best_metrics = optimizer.optimize(
+                self,
+                train_loader,
+                val_loader,
+                seed=self.config.get('optimization', {}).get('seed', None)
+            )
+            
+            # Update model configuration with best parameters
+            self.config['model'].update(best_params)
+            
+            # Log optimization results
+            self.logger.info(f"Best parameters found: {best_params}")
+            self.logger.info(f"Best metrics achieved: {best_metrics}")
+            
+            # Reset model to use new parameters
+            self.model = None  # Force reinitialization with new parameters
+            
+            return best_params
+            
+        except Exception as e:
+            self.logger.error(f"Error during hyperparameter optimization: {str(e)}")
+            raise
+
+    def update_parameters(self, parameters: Dict) -> None:
+        """
+        Update model parameters and reinitialize model
+        
+        Args:
+            parameters (Dict): New parameters to use
+        """
+        # Update configuration
+        self.config['model'].update(parameters)
+        
+        # Update instance variables
+        self.hidden_size = parameters.get('hidden_size', self.hidden_size)
+        self.num_layers = parameters.get('num_layers', self.num_layers)
+        self.batch_size = parameters.get('batch_size', self.batch_size)
+        self.learning_rate = parameters.get('learning_rate', self.learning_rate)
+        
+        # Reinitialize model with new parameters
+        self.model = LSTM(
+            input_size=self.config['model']['input_size'],
+            hidden_size=self.hidden_size,
+            num_layers=self.num_layers,
+            dropout=parameters.get('dropout', 0.2)
+        )
