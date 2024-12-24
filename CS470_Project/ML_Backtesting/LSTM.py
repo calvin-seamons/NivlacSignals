@@ -15,6 +15,7 @@ class LSTMConfig:
     attention_heads: int = 4
     use_layer_norm: bool = True
     residual_connections: bool = True
+    confidence_threshold: float = 0.6  # Threshold for high-confidence predictions
     
     def validate(self):
         """Validate configuration parameters"""
@@ -23,6 +24,7 @@ class LSTMConfig:
         assert self.num_layers > 0, "Number of layers must be positive"
         assert 0 <= self.dropout < 1, "Dropout must be between 0 and 1"
         assert self.attention_heads > 0, "Number of attention heads must be positive"
+        assert 0.5 <= self.confidence_threshold < 1, "Confidence threshold must be between 0.5 and 1"
 
 class MultiHeadAttention(nn.Module):
     """Multi-head self-attention mechanism"""
@@ -119,7 +121,7 @@ class LSTMLayer(nn.Module):
         
         return output, (h_n, c_n)
 
-class ImprovedLSTM(nn.Module):
+class DirectionalLSTM(nn.Module):
     """
     Improved LSTM model with:
     - Bidirectional LSTM layers
@@ -162,8 +164,10 @@ class ImprovedLSTM(nn.Module):
         self.final_norm = nn.LayerNorm(config.hidden_size)
         self.dropout = nn.Dropout(config.dropout)
         self.dense = nn.Linear(config.hidden_size, config.hidden_size // 2)
-        self.output = nn.Linear(config.hidden_size // 2, 1)
-
+        
+        # Change output to 2 nodes (up/down probability)
+        self.output = nn.Linear(config.hidden_size // 2, 2)
+        
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         batch_size, seq_len, features = x.size()
         
@@ -205,9 +209,30 @@ class ImprovedLSTM(nn.Module):
         # Dense layers
         x = F.relu(self.dense(x))
         x = self.dropout(x)
-        x = self.output(x)
         
-        return x
+        # Output probabilities using softmax
+        x = self.output(x)
+        probabilities = F.softmax(x, dim=-1)
+        
+        return probabilities
+
+    def predict_with_confidence(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """
+        Make predictions with confidence scores
+        
+        Returns:
+            Tuple containing:
+            - predicted direction (0 for down, 1 for up)
+            - confidence score (probability of predicted direction)
+            - raw probabilities for both directions
+        """
+        probabilities = self(x)
+        
+        # Get predicted direction and confidence
+        predicted_direction = torch.argmax(probabilities, dim=1)
+        confidence = torch.max(probabilities, dim=1).values
+        
+        return predicted_direction, confidence, probabilities
 
     def configure_optimizers(self, learning_rate: float = 1e-3, 
                            weight_decay: float = 1e-5) -> Tuple[torch.optim.Optimizer, torch.optim.lr_scheduler._LRScheduler]:
@@ -223,39 +248,10 @@ class ImprovedLSTM(nn.Module):
         scheduler = torch.optim.lr_scheduler.OneCycleLR(
             optimizer,
             max_lr=learning_rate,
-            epochs=100,  # This should be set based on your training config
-            steps_per_epoch=100,  # This should be set based on your batch size and dataset size
+            epochs=100,
+            steps_per_epoch=100,
             pct_start=0.3,
             anneal_strategy='cos'
         )
         
         return optimizer, scheduler
-
-    @staticmethod
-    def add_model_specific_args(parent_parser):
-        """Add model-specific arguments for command line interface"""
-        parser = parent_parser.add_argument_group("ImprovedLSTM")
-        parser.add_argument("--hidden_size", type=int, default=128)
-        parser.add_argument("--num_layers", type=int, default=2)
-        parser.add_argument("--dropout", type=float, default=0.2)
-        parser.add_argument("--bidirectional", type=bool, default=True)
-        parser.add_argument("--attention_heads", type=int, default=4)
-        parser.add_argument("--use_layer_norm", type=bool, default=True)
-        parser.add_argument("--residual_connections", type=bool, default=True)
-        return parent_parser
-
-# Example usage:
-def create_model(input_size: int):
-    config = LSTMConfig(
-        input_size=input_size,
-        hidden_size=128,
-        num_layers=2,
-        dropout=0.2,
-        bidirectional=True,
-        attention_heads=4,
-        use_layer_norm=True,
-        residual_connections=True
-    )
-    
-    model = ImprovedLSTM(config)
-    return model

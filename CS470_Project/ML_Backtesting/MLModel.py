@@ -67,9 +67,6 @@ class MLModel:
         self.model = None
         self.feature_engineering = FeatureEngineering(config)
         self.scaler = None
-        
-        # Generate config fingerprint
-        self.config_fingerprint = self._generate_config_fingerprint()
             
         # Get model parameters for filename
         model_version = config['model']['version']
@@ -115,7 +112,7 @@ class MLModel:
         self.learning_rate = config['model'].get('learning_rate', 0.001)
         
         # Try to load existing model with fingerprint validation
-        self._load_model(validate_fingerprint=True)
+        self._load_model()
 
     def _initialize_model(self) -> None:
         """Initialize the improved LSTM model"""
@@ -133,29 +130,6 @@ class MLModel:
         
         # Initialize model
         self.model = ImprovedLSTM(model_config)
-
-    def _generate_config_fingerprint(self) -> str:
-        """Generate a unique fingerprint for the current model and feature configuration"""
-        import hashlib
-        
-        # Extract relevant configuration parameters
-        model_config = {
-            'architecture': {
-                'input_size': self.config['model']['input_size'],
-                'hidden_size': self.config['model'].get('hidden_size'),
-                'num_layers': self.config['model'].get('num_layers'),
-                'bidirectional': self.config['model'].get('bidirectional'),
-                'attention_heads': self.config['model'].get('attention_heads'),
-                'use_layer_norm': self.config['model'].get('use_layer_norm'),
-                'residual_connections': self.config['model'].get('residual_connections')
-            },
-            'features': self.config.get('features', {}),
-            'version': self.config['model']['version']
-        }
-        
-        # Create fingerprint
-        config_str = json.dumps(model_config, sort_keys=True)
-        return hashlib.sha256(config_str.encode()).hexdigest()
 
     def prepare_datasets(self, historical_data: Dict[str, pd.DataFrame]) -> Tuple[DataLoader, DataLoader]:
         """
@@ -432,7 +406,7 @@ class MLModel:
         try:
             # Load model if not loaded
             if self.model is None:
-                self._load_model(validate_fingerprint=True)
+                self._load_model()
                 if self.model is None:
                     raise ValueError("No compatible trained model available")
             
@@ -528,7 +502,7 @@ class MLModel:
         metrics = self._validate_epoch(val_loader, criterion)
         return metrics
 
-    def _load_model(self, validate_fingerprint: bool = True) -> None:
+    def _load_model(self) -> None:
         """Load saved model and validate against current configuration"""
         try:
             if os.path.exists(self.model_path):
@@ -537,13 +511,6 @@ class MLModel:
                 # Load metadata first
                 with open(self.metadata_path, 'r') as f:
                     self.metadata = json.load(f)
-                
-                # Validate configuration if requested
-                if validate_fingerprint:
-                    stored_fingerprint = self.metadata.get('config_fingerprint')
-                    if stored_fingerprint != self.config_fingerprint:
-                        print("Model configuration mismatch - will train new model")
-                        return
                 
                 try:
                     # Create model config from metadata (not current config)
@@ -622,22 +589,3 @@ class MLModel:
         except Exception as e:
             self.logger.error(f"Error during hyperparameter optimization: {str(e)}")
             raise
-
-    def update_parameters(self, parameters: Dict) -> None:
-        """
-        Update model parameters and reinitialize model
-        
-        Args:
-            parameters (Dict): New parameters to use
-        """
-        # Update configuration
-        self.config['model'].update(parameters)
-        
-        # Update instance variables
-        self.hidden_size = parameters.get('hidden_size', self.hidden_size)
-        self.num_layers = parameters.get('num_layers', self.num_layers)
-        self.batch_size = parameters.get('batch_size', self.batch_size)
-        self.learning_rate = parameters.get('learning_rate', self.learning_rate)
-        
-        # Reinitialize model with new parameters
-        self._initialize_model()

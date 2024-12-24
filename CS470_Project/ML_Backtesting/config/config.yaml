@@ -55,7 +55,7 @@ model:
   input_size: 49  # Matches the input size from model configuration
   
   # LSTM Architecture - Updated to match best parameters and actual model
-  sequence_length: 10      # From best parameters
+  sequence_length: 20      # From best parameters
   hidden_size: 256        # From best parameters
   num_layers: 2          # From best parameters
   bidirectional: true    # From model configuration
@@ -64,7 +64,7 @@ model:
   residual_connections: true
   
   # Training Parameters - Updated to match best parameters
-  batch_size: 128        # From best parameters
+  batch_size: 32        # From best parameters
   num_epochs: 100
   learning_rate: 0.001   # From best parameters
   train_test_split: 0.8
@@ -74,8 +74,8 @@ model:
   min_delta: 0.001
   
   # Regularization - Updated to match best parameters
-  dropout: 0.2           # From best parameters
-  weight_decay: 0.01     # From best parameters
+  dropout: 0.1           # From best parameters
+  weight_decay: 0.001     # From best parameters
 
   # Validation Parameters
   validation:
@@ -185,3 +185,28 @@ hyperparameter_search:
   optimization_tool: "optuna"  # Tool for optimization
   max_trials: 50              # Number of trials
   direction: "minimize"        # Optimization direction
+
+
+# TESTING CONFIGURATION
+model_params:
+  sequence_length: 20
+  prediction_horizon: 5
+  movement_threshold: 0.005
+  hidden_size: 128
+  num_layers: 2
+  dropout: 0.2
+  
+training_params:
+  batch_size: 32
+  learning_rate: 0.001
+  max_grad_norm: 1.0
+  validation_ratio: 0.2
+  
+prediction_params:
+  confidence_threshold: 0.6
+  volatility_threshold: 0.25
+  regime_factors:
+    trending_up: 1.1
+    trending_down: 1.1
+    ranging: 0.9
+    high_volatility: 0.8
