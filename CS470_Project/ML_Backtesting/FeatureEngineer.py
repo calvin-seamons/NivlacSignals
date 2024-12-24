@@ -104,14 +104,24 @@ class FeatureEngineering:
         Returns:
             DataFrame containing all generated features
         """
-        self.logger.info("Starting feature generation process")
+        print("\nFeatureEngineering process started...")
+        print(f"Input data shape: {data.shape}")
+        print(f"Input data columns: {data.columns.tolist()}")
+        print(f"Input data index type: {type(data.index)}")
+        print(f"First few dates in index: {data.index[:5]}")
         
         try:
+            # Check if we have a multi-index
+            if isinstance(data.index, pd.MultiIndex):
+                # If we have a multi-index, we already have processed features
+                return data
+            
             # Validate input data
+            print(f"\nValidating data with min_samples = {self.config.get('min_samples', 100)}")
             self._validate_data(data)
             
-            # Initialize results dictionary to store features
-            all_features = pd.DataFrame(index=data.index)
+            # Initialize with original OHLCV data
+            all_features = data[['Open', 'High', 'Low', 'Close', 'Volume']].copy()
             
             # Generate features for each enabled group
             for group in self.feature_groups:
@@ -128,7 +138,7 @@ class FeatureEngineering:
                     # Add prefix to avoid name collisions
                     features = features.add_prefix(f"{group.name}_")
                     
-                    # Add to results
+                    # Add to results, preserving original OHLCV columns
                     all_features = pd.concat([all_features, features], axis=1)
                     
                     self.logger.info(

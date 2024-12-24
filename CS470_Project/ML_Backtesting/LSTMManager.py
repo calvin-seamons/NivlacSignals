@@ -9,8 +9,9 @@ import numpy as np
 from typing import Tuple
 from LSTM import DirectionalLSTM
 from FeatureEngineer import FeatureEngineering
+from LSTM import LSTMConfig
 
-CONFIG_PATH = Path("config.yaml")
+CONFIG_PATH = Path("config/config.yaml")
 
 class TimeSeriesSplitter:
     """
@@ -75,8 +76,23 @@ class LSTMManager:
         self._validate_config()
         
         # Initialize components
-        self.feature_engineering = FeatureEngineering(**self.config['feature_params'])
-        self.model = DirectionalLSTM(**self.config['model_params'])
+        self.feature_engineering = FeatureEngineering(self.config['feature_params'])
+        # Create LSTM config object
+
+        lstm_config = LSTMConfig(
+            input_size=self.config['model_params']['input_size'],
+            hidden_size=self.config['model_params']['hidden_size'],
+            num_layers=self.config['model_params']['num_layers'],
+            dropout=self.config['model_params']['dropout'],
+            bidirectional=self.config['model_params']['bidirectional'],
+            attention_heads=self.config['model_params']['attention_heads'],
+            use_layer_norm=self.config['model_params']['use_layer_norm'],
+            residual_connections=self.config['model_params']['residual_connections'],
+            confidence_threshold=self.config['model_params']['confidence_threshold']
+        )
+        
+        # Initialize model with config object
+        self.model = DirectionalLSTM(lstm_config)
         
         logging.info("LSTMManager initialized successfully")
     
@@ -132,6 +148,12 @@ class LSTMManager:
     def train(self, historical_data: Dict[str, pd.DataFrame]) -> Dict[str, float]:
         """Enhanced training with proper data handling and scaling"""
         try:
+            print("\nStarting train method...")
+            print(f"Number of symbols in historical_data: {len(historical_data)}")
+            print("Data shapes for each symbol:")
+            for symbol, df in historical_data.items():
+                print(f"{symbol}: {df.shape}")
+
             self._validate_historical_data(historical_data)
             
             # Sort all data by timestamp first

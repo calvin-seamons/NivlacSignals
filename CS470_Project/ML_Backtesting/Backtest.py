@@ -1,6 +1,5 @@
 import logging
 import os
-from turtle import st
 import backtrader as bt
 import pandas as pd
 from typing import Dict, List, Optional

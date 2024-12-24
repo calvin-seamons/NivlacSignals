@@ -5,7 +5,7 @@ import logging
 from dataclasses import dataclass
 import yaml
 import os
-from MLModel import MLModel
+from LSTMManager import LSTMManager
 
 @dataclass
 class Position:
@@ -15,15 +15,6 @@ class Position:
     size: float
     direction: str  # 'long' or 'short'
     risk_metrics: Dict
-
-class MLModel:
-    """Stub class for ML-based predictions"""
-    def __init__(self, config: Dict):
-        self.config = config
-        
-    def predict(self, data: pd.DataFrame) -> pd.Series:
-        """Stub for ML predictions"""
-        return pd.Series()
 
 class MeanReversion:
     """Stub class for mean reversion signals"""
@@ -59,7 +50,7 @@ class FactorPipeline:
         self.short_positions: List[Position] = []
         
         # Initialize factor models
-        self.ml_model = MLModel(self.config)
+        self.ml_model = LSTMManager()
         self.mean_reversion = MeanReversion(self.config)
         
         # Store latest analysis results
