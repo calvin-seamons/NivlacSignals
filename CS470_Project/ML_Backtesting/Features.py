@@ -24,16 +24,12 @@ class PriceFeatures(BaseFeatures):
     
     def generate(self, data: pd.DataFrame) -> pd.DataFrame:
         """Generate price features"""
-        print("\nPriceFeatures generation started...")
-        print(f"Input data shape: {data.shape}")
-        print(f"Volume range: {data['Volume'].min()} to {data['Volume'].max()}")
         
         self._validate_data(data)
         features = pd.DataFrame(index=data.index)
         
         # Log prices and ratios
         epsilon = 1e-10
-        print(f"Applying log transform with epsilon={epsilon}")
         features['log_close'] = np.log(data['Close'].clip(lower=epsilon))
         features['log_volume'] = np.log(data['Volume'].clip(lower=epsilon))
         features['high_low_ratio'] = data['High'] / data['Low'].clip(lower=epsilon)

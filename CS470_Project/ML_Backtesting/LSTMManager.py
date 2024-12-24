@@ -16,6 +16,7 @@ CONFIG_PATH = Path("config/config.yaml")
 class TimeSeriesSplitter:
     """
     Handles time series data splitting with proper temporal ordering and gap handling.
+    Modified to support multi-index DataFrame for multiple stocks.
     """
     def __init__(self, validation_ratio: float = 0.2, gap_days: int = 5):
         self.validation_ratio = validation_ratio
@@ -24,30 +25,58 @@ class TimeSeriesSplitter:
     def split(self, data: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
         Split time series data while maintaining temporal order and adding a gap.
+        Handles multi-index DataFrame with (date, symbol) hierarchy.
         
         Args:
-            data: DataFrame with DatetimeIndex
+            data: DataFrame with MultiIndex (DatetimeIndex, symbol)
             
         Returns:
             Tuple[pd.DataFrame, pd.DataFrame]: Training and validation splits
         """
-        if not isinstance(data.index, pd.DatetimeIndex):
-            raise ValueError("Data must have DatetimeIndex")
+        if not isinstance(data.index, pd.MultiIndex):
+            raise ValueError("Data must have MultiIndex (datetime, symbol)")
             
-        # Calculate split point
-        split_idx = int(len(data) * (1 - self.validation_ratio))
-        split_date = data.index[split_idx]
+        # Get unique symbols
+        symbols = data.index.get_level_values(1).unique()
         
-        # Create gap
-        gap_start = split_date
-        gap_end = split_date + pd.Timedelta(days=self.gap_days)
+        train_dfs = []
+        val_dfs = []
         
-        # Split data
-        train_data = data[:gap_start]
-        val_data = data[gap_end:]
+        for symbol in symbols:
+            # Get data for this symbol
+            symbol_data = data.xs(symbol, level=1)
+            
+            # Calculate split point
+            split_idx = int(len(symbol_data) * (1 - self.validation_ratio))
+            split_date = symbol_data.index[split_idx]
+            
+            # Create gap
+            gap_start = split_date
+            gap_end = split_date + pd.Timedelta(days=self.gap_days)
+            
+            # Split data
+            train_data = symbol_data[:gap_start]
+            val_data = symbol_data[gap_end:]
+            
+            # Restore multi-index
+            train_data = train_data.assign(symbol=symbol)
+            val_data = val_data.assign(symbol=symbol)
+            
+            train_data.set_index('symbol', append=True, inplace=True)
+            val_data.set_index('symbol', append=True, inplace=True)
+            
+            train_dfs.append(train_data)
+            val_dfs.append(val_data)
         
-        return train_data, val_data
-
+        # Combine all splits while maintaining multi-index
+        train_combined = pd.concat(train_dfs)
+        val_combined = pd.concat(val_dfs)
+        
+        # Sort index
+        train_combined.sort_index(inplace=True)
+        val_combined.sort_index(inplace=True)
+        
+        return train_combined, val_combined
 
 class LSTMManager:
     """
@@ -66,19 +95,12 @@ class LSTMManager:
             yaml.YAMLError: If config.yaml is invalid
             ValueError: If required config parameters are missing
         """
-        # Set up logging
         self._setup_logging()
-        
-        # Load configuration
         self.config = self._load_config()
-        
-        # Validate configuration
         self._validate_config()
         
-        # Initialize components
         self.feature_engineering = FeatureEngineering(self.config['feature_params'])
-        # Create LSTM config object
-
+        
         lstm_config = LSTMConfig(
             input_size=self.config['model_params']['input_size'],
             hidden_size=self.config['model_params']['hidden_size'],
@@ -91,10 +113,8 @@ class LSTMManager:
             confidence_threshold=self.config['model_params']['confidence_threshold']
         )
         
-        # Initialize model with config object
         self.model = DirectionalLSTM(lstm_config)
-        
-        logging.info("LSTMManager initialized successfully")
+        logging.info("LSTMManager initialized with multi-index support")
     
     def _setup_logging(self) -> None:
         """Configure logging with appropriate format and level."""
@@ -145,60 +165,73 @@ class LSTMManager:
         if 'confidence_threshold' not in self.config['prediction_params']:
             raise ValueError("Missing required parameter: prediction_params.confidence_threshold")
     
-    def train(self, historical_data: Dict[str, pd.DataFrame]) -> Dict[str, float]:
-        """Enhanced training with proper data handling and scaling"""
-        try:
-            print("\nStarting train method...")
-            print(f"Number of symbols in historical_data: {len(historical_data)}")
-            print("Data shapes for each symbol:")
-            for symbol, df in historical_data.items():
-                print(f"{symbol}: {df.shape}")
+    def _create_multi_index_data(self, historical_data: Dict[str, pd.DataFrame]) -> pd.DataFrame:
+        """
+        Convert dictionary of DataFrames to multi-index DataFrame.
+        
+        Args:
+            historical_data: Dictionary mapping symbols to DataFrames
+            
+        Returns:
+            pd.DataFrame: Multi-index DataFrame with (date, symbol) hierarchy
+        """
+        dfs = []
+        for symbol, df in historical_data.items():
+            # Ensure DatetimeIndex
+            if not isinstance(df.index, pd.DatetimeIndex):
+                df.index = pd.to_datetime(df.index)
+            
+            # Add symbol level
+            df = df.assign(symbol=symbol)
+            df.set_index('symbol', append=True, inplace=True)
+            dfs.append(df)
+        
+        # Combine all DataFrames
+        combined = pd.concat(dfs)
+        
+        # Sort index properly
+        combined.sort_index(inplace=True)
+        return combined
 
-            self._validate_historical_data(historical_data)
+    def train(self, historical_data: Dict[str, pd.DataFrame]) -> Dict[str, float]:
+        """Enhanced training with proper multi-index data handling"""
+        try:
+            logging.info("Starting training with multi-index support...")
             
-            # Sort all data by timestamp first
-            sorted_data = {
-                symbol: df.sort_index() 
-                for symbol, df in historical_data.items()
-            }
+            # Validate and filter historical data
+            valid_data = self._validate_historical_data(historical_data)
             
-            # Initialize TimeSeriesSplitter
+            # Convert to multi-index structure
+            multi_index_data = self._create_multi_index_data(valid_data)
+            
+            # Rest of the training process remains the same...
             splitter = TimeSeriesSplitter(
                 validation_ratio=self.config['training_params'].get('validation_ratio', 0.2),
                 gap_days=self.config['training_params'].get('gap_days', 5)
             )
             
-            # Process and split features by symbol
-            train_features = []
-            val_features = []
+            # Process features maintaining multi-index
+            logging.info("Processing features with multi-index...")
+            features = self.feature_engineering.process(multi_index_data)
             
-            for symbol, data in sorted_data.items():
-                logging.info(f"Processing features for {symbol}")
-                
-                # Generate raw features
-                features = self.feature_engineering.process(data)
-                
-                # Split features into train/val
-                train_df, val_df = splitter.split(features)
-                
-                train_features.append(train_df)
-                val_features.append(val_df)
+            # Split features into train/val while maintaining symbol separation
+            train_features, val_features = splitter.split(features)
             
-            # Combine features
-            train_features = pd.concat(train_features)
-            val_features = pd.concat(val_features)
+            # Scale features
+            logging.info("Scaling features...")
+            scaled_train = self.feature_engineering.fit_transform(train_features)
+            scaled_val = self.feature_engineering.transform(val_features)
             
-            # Fit scalers on training data and transform both sets
-            logging.info("Fitting and applying scalers...")
-            scaled_train_features = self.feature_engineering.fit_transform(train_features)
-            scaled_val_features = self.feature_engineering.transform(val_features)
+            # Create sequences by symbol
+            logging.info("Creating sequences by symbol...")
+            train_sequences, train_labels = self._create_multi_symbol_sequences(
+                scaled_train, train_features.index
+            )
+            val_sequences, val_labels = self._create_multi_symbol_sequences(
+                scaled_val, val_features.index
+            )
             
-            # Create sequences
-            logging.info("Creating sequences...")
-            train_sequences, train_labels = self._create_sequences(scaled_train_features)
-            val_sequences, val_labels = self._create_sequences(scaled_val_features)
-
-            # Add validation here
+            # Validate sequence data
             self._validate_sequence_data(train_sequences, train_labels)
             self._validate_sequence_data(val_sequences, val_labels)
             
@@ -213,7 +246,7 @@ class LSTMManager:
                 enumerate(class_weights)
             )
             
-            # Convert to tensors and create datasets
+            # Convert to PyTorch format
             train_data = self._prepare_torch_data(train_sequences, train_labels)
             val_data = self._prepare_torch_data(val_sequences, val_labels)
             
@@ -229,105 +262,212 @@ class LSTMManager:
             
         except Exception as e:
             logging.error(f"Training failed: {str(e)}")
-            raise RuntimeError(f"Training failed: {str(e)}") from e
-    
-    def predict(self, data: pd.DataFrame) -> Dict[str, Any]:
+            raise
+
+    def _create_multi_symbol_sequences(
+        self, 
+        data: np.ndarray, 
+        index: pd.MultiIndex
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Generate directional prediction for a single symbol with market regime awareness.
+        Create sequences maintaining symbol separation.
         
         Args:
-            data: DataFrame containing OHLCV data for prediction
+            data: Scaled feature data
+            index: Multi-index containing (date, symbol)
             
         Returns:
-            Dictionary containing:
-                - direction: 1 for up, 0 for down
-                - probability: adjusted confidence in prediction
-                - timestamp: prediction timestamp
-                - market_regime: current market regime
-                - volatility: current volatility level
-                - prediction_horizon: number of days ahead prediction is for
+            Tuple[np.ndarray, np.ndarray]: Sequences and labels
+        """
+        sequence_length = self.config['model_params']['sequence_length']
+        prediction_horizon = self.config['model_params']['prediction_horizon']
+        threshold = self.config['model_params'].get('movement_threshold', 0.0)
+        
+        sequences = []
+        labels = []
+        
+        # Get unique symbols
+        symbols = index.get_level_values(1).unique()
+        
+        for symbol in symbols:
+            # Get data for this symbol
+            symbol_mask = index.get_level_values(1) == symbol
+            symbol_data = data[symbol_mask]
+            symbol_dates = index.get_level_values(0)[symbol_mask]
+            
+            for i in range(len(symbol_data) - sequence_length - prediction_horizon):
+                # Get sequence
+                seq = symbol_data[i:i+sequence_length]
                 
-        Raises:
-            ValueError: If input data is invalid or insufficient
+                # Validate sequence
+                if np.isnan(seq).any():
+                    continue
+                
+                # Calculate future return
+                current_price = symbol_data[i+sequence_length-1][3]  # Assuming Close is at index 3
+                future_price = symbol_data[i+sequence_length+prediction_horizon-1][3]
+                
+                future_return = (future_price - current_price) / current_price
+                
+                # Apply threshold
+                if abs(future_return) < threshold:
+                    continue
+                    
+                label = int(future_return > 0)
+                
+                sequences.append(seq)
+                labels.append(label)
+        
+        if not sequences:
+            raise ValueError("No valid sequences created")
+        
+        return np.array(sequences), np.array(labels)
+
+    def predict(self, data: pd.DataFrame, symbol: str) -> Dict[str, Any]:
+        """
+        Generate prediction for a single symbol.
+        
+        Args:
+            data: DataFrame for a single symbol
+            symbol: Stock symbol
+            
+        Returns:
+            Dictionary containing prediction details
         """
         try:
-            logging.info(f"Starting prediction with data shape: {data.shape}")
+            logging.info(f"Starting prediction for symbol {symbol}")
             
             # Validate input data
             self._validate_prediction_data(data)
             
+            # Add symbol level to index
+            data = data.assign(symbol=symbol)
+            data.set_index('symbol', append=True, inplace=True)
+            
             # Process features
-            logging.info("Processing features...")
             features = self.feature_engineering.process(data)
             
-            # Scale features using fitted scalers
-            logging.info("Scaling features...")
+            # Scale features
             scaled_features = self.feature_engineering.transform(features)
-            
-            # Detect market regime
-            market_regime = self._detect_market_regime(data)
-            logging.info(f"Detected market regime: {market_regime}")
-            
-            # Calculate current volatility
-            volatility = self._calculate_volatility(data)
-            logging.info(f"Current volatility: {volatility:.4f}")
             
             # Create sequence
             sequence = self._create_prediction_sequence(scaled_features)
-            logging.info(f"Created sequence with shape: {sequence.shape}")
-
-            # Validate sequence
             self._validate_prediction_sequence(sequence)
             
-            # Convert to tensor
+            # Get prediction
             sequence_tensor = torch.FloatTensor(sequence).to(self.model.device)
-            
-            # Get base prediction
-            logging.info("Getting base prediction from model...")
             with torch.no_grad():
                 raw_probability = self.model(sequence_tensor).sigmoid().cpu().numpy()[0]
-            logging.info(f"Raw prediction probability: {raw_probability:.4f}")
             
-            # Adjust probability based on market regime
+            # Detect market regime and adjust probability
+            market_regime = self._detect_market_regime(data)
+            volatility = self._calculate_volatility(data)
+            
             adjusted_probability = self._adjust_probability_for_regime(
                 raw_probability,
                 market_regime,
                 volatility
             )
             
-            # Determine direction and final probability
+            # Create prediction
             if adjusted_probability < 0.5:
                 direction = 0
                 final_probability = 1 - adjusted_probability
             else:
                 direction = 1
                 final_probability = adjusted_probability
-                
-            # Create prediction dictionary
+            
             prediction = {
+                'symbol': symbol,
                 'direction': direction,
                 'probability': float(final_probability),
-                'timestamp': data.index[-1],
+                'timestamp': data.index.get_level_values(0)[-1],
                 'market_regime': market_regime,
                 'volatility': float(volatility),
                 'metadata': {
                     'raw_probability': float(raw_probability),
                     'sequence_length': self.config['model_params']['sequence_length'],
-                    'prediction_horizon': self.config['model_params']['prediction_horizon'],
-                    'feature_count': scaled_features.shape[1]
+                    'prediction_horizon': self.config['model_params']['prediction_horizon']
                 }
             }
             
             # Apply confidence threshold
             if abs(adjusted_probability - 0.5) < self.config['prediction_params']['confidence_threshold']:
                 prediction['direction'] = None
-                logging.info("Prediction below confidence threshold - returning None direction")
             
             return prediction
             
         except Exception as e:
-            logging.error(f"Prediction failed: {str(e)}")
+            logging.error(f"Prediction failed for {symbol}: {str(e)}")
             raise
+
+    def _validate_historical_data(self, historical_data: Dict[str, pd.DataFrame]) -> Dict[str, pd.DataFrame]:
+        """
+        Validate historical data and return filtered dictionary with valid symbols only.
+        
+        Args:
+            historical_data: Dictionary mapping symbols to DataFrames
+            
+        Returns:
+            Dict[str, pd.DataFrame]: Filtered dictionary with valid symbols only
+        """
+        if not historical_data:
+            raise ValueError("Empty historical data provided")
+            
+        required_columns = ['Open', 'High', 'Low', 'Close', 'Volume', 
+                        'Dividends', 'Stock Splits']
+        
+        valid_data = {}
+        excluded_symbols = []
+        
+        for symbol, data in historical_data.items():
+            try:
+                # Basic DataFrame validation
+                if not isinstance(data, pd.DataFrame):
+                    logging.warning(f"Skipping {symbol}: Data must be a DataFrame")
+                    excluded_symbols.append(symbol)
+                    continue
+                    
+                # Check required columns
+                missing_columns = set(required_columns) - set(data.columns)
+                if missing_columns:
+                    logging.warning(f"Skipping {symbol}: Missing columns {missing_columns}")
+                    excluded_symbols.append(symbol)
+                    continue
+                    
+                # Check minimum samples
+                if len(data) < self.config['model_params']['sequence_length']:
+                    logging.warning(
+                        f"Skipping {symbol}: Insufficient data. Has {len(data)} rows, "
+                        f"needs {self.config['model_params']['sequence_length']}"
+                    )
+                    excluded_symbols.append(symbol)
+                    continue
+                    
+                # Ensure DatetimeIndex
+                if not isinstance(data.index, pd.DatetimeIndex):
+                    try:
+                        data.index = pd.to_datetime(data.index)
+                    except Exception as e:
+                        logging.warning(f"Skipping {symbol}: Invalid index - {str(e)}")
+                        excluded_symbols.append(symbol)
+                        continue
+                
+                # If all checks pass, add to valid data
+                valid_data[symbol] = data
+                
+            except Exception as e:
+                logging.warning(f"Skipping {symbol} due to error: {str(e)}")
+                excluded_symbols.append(symbol)
+        
+        if not valid_data:
+            raise ValueError("No valid symbols remain after filtering")
+        
+        if excluded_symbols:
+            logging.info(f"Excluded {len(excluded_symbols)} symbols: {excluded_symbols}")
+            logging.info(f"Proceeding with {len(valid_data)} valid symbols")
+        
+        return valid_data
 
     def _detect_market_regime(self, data: pd.DataFrame) -> str:
         """
@@ -437,28 +577,6 @@ class LSTMManager:
         logging.info(f"Final adjusted probability: {adjusted_probability:.4f}")
         return adjusted_probability
     
-    def _validate_historical_data(self, historical_data: Dict[str, pd.DataFrame]) -> None:
-        """Validate historical data format and content."""
-        if not historical_data:
-            raise ValueError("Empty historical data provided")
-            
-        required_columns = ['Open', 'High', 'Low', 'Close', 'Volume', 
-                          'Dividends', 'Stock Splits']
-        
-        for symbol, data in historical_data.items():
-            if not isinstance(data, pd.DataFrame):
-                raise ValueError(f"Data for symbol {symbol} must be a DataFrame")
-                
-            missing_columns = set(required_columns) - set(data.columns)
-            if missing_columns:
-                raise ValueError(f"Missing required columns for {symbol}: {missing_columns}")
-                
-            if len(data) < self.config['model_params']['sequence_length']:
-                raise ValueError(
-                    f"Insufficient data for {symbol}. Need at least "
-                    f"{self.config['model_params']['sequence_length']} rows"
-                )
-    
     def _validate_prediction_data(self, data: pd.DataFrame) -> None:
         """Validate prediction data format and content."""
         if not isinstance(data, pd.DataFrame):
@@ -477,78 +595,10 @@ class LSTMManager:
                 f"{self.config['model_params']['sequence_length']} rows"
             )
     
-    def _create_sequences(self, features: pd.DataFrame) -> tuple:
-        """
-        Create sequences for LSTM training with proper validation and logging.
-        """
-        logging.info(f"Creating sequences from features of shape: {features.shape}")
-        
-        sequence_length = self.config['model_params']['sequence_length']
-        prediction_horizon = self.config['model_params']['prediction_horizon']
-        threshold = self.config['model_params'].get('movement_threshold', 0.0)
-        
-        # Validate that features are properly formatted
-        if not isinstance(features, pd.DataFrame):
-            raise ValueError("Features must be a DataFrame")
-        
-        # Get feature columns (excluding any target/label columns)
-        feature_cols = [col for col in features.columns if col != 'target']
-        
-        sequences = []
-        labels = []
-        timestamps = []  # Track timestamps for proper ordering
-        
-        for i in range(len(features) - sequence_length - prediction_horizon):
-            # Get the sequence of features
-            seq = features[feature_cols].iloc[i:i+sequence_length].values
-            
-            # Validate sequence
-            if np.isnan(seq).any():
-                logging.warning(f"Skipping sequence at index {i} due to NaN values")
-                continue
-                
-            # Calculate future return (assuming 'Close' is in features)
-            current_price = features['Close'].iloc[i+sequence_length-1]
-            future_price = features['Close'].iloc[i+sequence_length+prediction_horizon-1]
-            
-            future_return = (future_price - current_price) / current_price
-            
-            # Apply threshold for more meaningful moves
-            if abs(future_return) < threshold:
-                continue
-                
-            label = int(future_return > 0)
-            
-            sequences.append(seq)
-            labels.append(label)
-            timestamps.append(features.index[i+sequence_length])
-        
-        if not sequences:
-            raise ValueError("No valid sequences created after applying criteria")
-        
-        sequences = np.array(sequences)
-        labels = np.array(labels)
-        
-        logging.info(f"Created sequences with shape: {sequences.shape}")
-        logging.info(f"Label distribution: {np.bincount(labels)}")
-        
-        return sequences, labels
-    
     def _create_prediction_sequence(self, features: pd.DataFrame) -> np.ndarray:
         """Create sequence for prediction."""
         sequence_length = self.config['model_params']['sequence_length']
         return features.iloc[-sequence_length:].values.reshape(1, sequence_length, -1)
-    
-    def _train_val_split(self, sequences: np.ndarray, labels: np.ndarray, 
-                        val_ratio: float) -> tuple:
-        """Split data into training and validation sets."""
-        split_idx = int(len(sequences) * (1 - val_ratio))
-        return (
-            sequences[:split_idx], 
-            sequences[split_idx:],
-            labels[:split_idx], 
-            labels[split_idx:]
-        )
     
     def _prepare_torch_data(self, sequences: np.ndarray, labels: np.ndarray) -> torch.utils.data.DataLoader:
         """Prepare data for PyTorch training"""
