@@ -10,6 +10,7 @@ from typing import Tuple
 from LSTM import DirectionalLSTM
 from FeatureEngineer import FeatureEngineering
 from LSTM import LSTMConfig
+from HyperparameterOptimizer import HyperparameterOptimizer
 
 CONFIG_PATH = Path("config/config.yaml")
 
@@ -687,3 +688,72 @@ class LSTMManager:
             
         if not np.isfinite(sequence).all():
             raise ValueError("Sequence contains non-finite values")
+        
+    def optimize_hyperparameters(self, historical_data: Dict[str, pd.DataFrame]) -> Dict[str, Any]:
+        """
+        Run the complete hyperparameter optimization process using the HyperparameterOptimizer.
+        
+        Args:
+            historical_data: Dictionary mapping symbols to DataFrames with historical data
+            
+        Returns:
+            Dictionary containing:
+            - best_parameters: The optimal parameters found
+            - optimization_report: Path to the generated report
+            - optimization_metrics: Dictionary of performance metrics
+        """
+        try:
+            self.logger.info("Starting hyperparameter optimization process")
+            
+            # Get optimization config from main config
+            optimization_config = self.config.get('optimization_params', {})
+            if not optimization_config:
+                raise ValueError("No optimization configuration found in config.yaml")
+                
+            # Initialize optimizer
+            optimizer = HyperparameterOptimizer(self, optimization_config)
+            
+            # Convert data to multi-index DataFrame
+            data = self._create_multi_index_data(historical_data)
+            
+            # Initialize optimization workflow
+            search_space = optimizer.setup_search_space()
+            optimizer.setup_validation_strategy(data)
+            
+            # Phase 1: Coarse Search
+            self.logger.info("Starting coarse parameter search")
+            coarse_params = optimizer.run_coarse_search(data)
+            self.logger.info(f"Coarse search completed with parameters: {coarse_params}")
+            
+            # Phase 2: Feature Optimization
+            self.logger.info("Starting feature optimization")
+            feature_params = optimizer.optimize_features(data, coarse_params)
+            self.logger.info(f"Feature optimization completed with parameters: {feature_params}")
+            
+            # Phase 3: Fine Tuning
+            self.logger.info("Starting fine-tuning phase")
+            final_params = optimizer.fine_tune_parameters(data, feature_params)
+            self.logger.info(f"Fine-tuning completed with parameters: {final_params}")
+            
+            # Phase 4: Robustness Testing
+            self.logger.info("Starting robustness testing")
+            robustness_results = optimizer.run_robustness_tests(data)
+            self.logger.info("Robustness testing completed")
+            
+            # Generate final report
+            report_path = optimizer.generate_optimization_report()
+            self.logger.info(f"Generated optimization report at: {report_path}")
+            
+            # Return comprehensive results
+            results = {
+                'best_parameters': final_params,
+                'optimization_report': report_path,
+                'robustness_metrics': robustness_results
+            }
+            
+            self.logger.info("Hyperparameter optimization process completed successfully")
+            return results
+            
+        except Exception as e:
+            self.logger.error(f"Hyperparameter optimization failed: {str(e)}")
+            raise
