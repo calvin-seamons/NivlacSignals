@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Optional, Tuple
+from typing import Dict, Optional, Tuple
 from dataclasses import dataclass
 
 @dataclass
@@ -135,84 +135,129 @@ class DirectionalLSTM(nn.Module):
         config.validate()
         self.config = config
         
-        # Input normalization
-        self.input_norm = nn.BatchNorm1d(config.input_size)
+        print(f"[DEBUG] Initializing DirectionalLSTM with config input_size={config.input_size}")
+        
+        # We'll initialize the input_norm in the forward pass
+        self.input_norm = None
+        self.input_size_set = False
+        self.real_input_size = None  # Will store actual input size from first forward pass
+        
+        # Hold off on initializing LSTM layers until we know the real input size
+        self.lstm_layers = None
+        self.attention = None
+        self.final_norm = None
+        self.dense = None
+        self.output = None
+
+    def _initialize_layers(self, input_size: int):
+        """Initialize layers with the correct input size and dtype"""
+        print(f"[DEBUG] Initializing layers with actual input_size={input_size}")
+        
+        # Set default tensor type to float32
+        torch.set_default_tensor_type(torch.FloatTensor)
         
         # LSTM layers with residual connections
         self.lstm_layers = nn.ModuleList()
-        input_size = config.input_size
+        current_input_size = input_size
         
-        for _ in range(config.num_layers):
+        for i in range(self.config.num_layers):
             lstm_layer = LSTMLayer(
-                input_size=input_size,
-                hidden_size=config.hidden_size,
-                dropout=config.dropout,
-                bidirectional=config.bidirectional,
-                use_layer_norm=config.use_layer_norm
+                input_size=current_input_size,
+                hidden_size=self.config.hidden_size,
+                dropout=self.config.dropout,
+                bidirectional=self.config.bidirectional,
+                use_layer_norm=self.config.use_layer_norm
             )
             self.lstm_layers.append(lstm_layer)
-            input_size = config.hidden_size
+            current_input_size = self.config.hidden_size
         
         # Multi-head attention layer
         self.attention = MultiHeadAttention(
-            hidden_size=config.hidden_size,
-            num_heads=config.attention_heads,
-            dropout=config.dropout
+            hidden_size=self.config.hidden_size,
+            num_heads=self.config.attention_heads,
+            dropout=self.config.dropout
         )
         
         # Final prediction layers
-        self.final_norm = nn.LayerNorm(config.hidden_size)
-        self.dropout = nn.Dropout(config.dropout)
-        self.dense = nn.Linear(config.hidden_size, config.hidden_size // 2)
+        self.final_norm = nn.LayerNorm(self.config.hidden_size)
+        self.dropout = nn.Dropout(self.config.dropout)
+        self.dense = nn.Linear(self.config.hidden_size, self.config.hidden_size // 2)
+        self.output = nn.Linear(self.config.hidden_size // 2, 2)
         
-        # Change output to 2 nodes (up/down probability)
-        self.output = nn.Linear(config.hidden_size // 2, 2)
+        # Ensure all parameters are float32
+        self.type(torch.float32)
+        
+        # Move to same device if model is already on GPU
+        if next(self.parameters(), None) is not None and next(self.parameters()).is_cuda:
+            self.to(next(self.parameters()).device)
         
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # Input shape: [batch_size, sequence_length, feature_dim]
         batch_size, seq_len, features = x.size()
+        print(f"[DEBUG] Input shape: batch_size={batch_size}, seq_len={seq_len}, features={features}")
+        
+        # Initialize layers if this is the first forward pass
+        if self.lstm_layers is None:
+            self._initialize_layers(features)
+            self.real_input_size = features
+        
+        # Verify input size hasn't changed
+        if features != self.real_input_size:
+            raise ValueError(f"Input feature dimension changed. Expected {self.real_input_size}, got {features}")
+        
+        # Initialize input_norm with the correct feature dimension
+        if not hasattr(self, 'input_size_set') or not self.input_size_set:
+            print(f"[DEBUG] Initializing BatchNorm1d with features={features}")
+            self.input_norm = nn.BatchNorm1d(features)
+            if next(self.parameters()).is_cuda:
+                self.input_norm = self.input_norm.cuda()
+            self.input_size_set = True
         
         # Apply input normalization
+        # Reshape to [batch_size * seq_len, features] for BatchNorm1d
         x = x.reshape(-1, features)
+        print(f"[DEBUG] Shape before BatchNorm1d: {x.shape}")
         x = self.input_norm(x)
+        # Reshape back to [batch_size, seq_len, features]
         x = x.reshape(batch_size, seq_len, features)
-        
-        # Initial hidden states
-        h_states = []
-        c_states = []
+        print(f"[DEBUG] Shape after BatchNorm1d reshape: {x.shape}")
         
         # Process LSTM layers with residual connections
         for i, lstm_layer in enumerate(self.lstm_layers):
             if i > 0 and self.config.residual_connections:
                 residual = x
             
-            # Apply LSTM layer
-            x, (h_n, c_n) = lstm_layer(x)
-            
-            # Store hidden states
-            h_states.append(h_n)
-            c_states.append(c_n)
+            # Apply LSTM layer - input: [batch_size, seq_len, features]
+            x, _ = lstm_layer(x)  # We're not using the hidden states, so we can ignore them
+            print(f"[DEBUG] Shape after LSTM layer {i}: {x.shape}")
             
             # Add residual connection if enabled
             if i > 0 and self.config.residual_connections:
                 x = x + residual
         
         # Apply attention mechanism
+        # Input: [batch_size, seq_len, hidden_size]
         x = self.attention(x)
+        print(f"[DEBUG] Shape after attention: {x.shape}")
         
         # Final processing
         x = self.final_norm(x)
         x = self.dropout(x)
         
-        # Get last sequence output
+        # Get last sequence output - select last timestep
+        # From: [batch_size, seq_len, hidden_size] to [batch_size, hidden_size]
         x = x[:, -1, :]
+        print(f"[DEBUG] Shape after selecting last timestep: {x.shape}")
         
         # Dense layers
         x = F.relu(self.dense(x))
         x = self.dropout(x)
         
-        # Output probabilities using softmax
+        # Output layer
         x = self.output(x)
+        # Apply softmax for probabilities
         probabilities = F.softmax(x, dim=-1)
+        print(f"[DEBUG] Final output shape: {probabilities.shape}")
         
         return probabilities
 
@@ -255,3 +300,139 @@ class DirectionalLSTM(nn.Module):
         )
         
         return optimizer, scheduler
+    
+    def train_model(self, train_loader, validation_loader, epochs=100, learning_rate=1e-3, 
+             weight_decay=1e-5, early_stopping_params=None, class_weights=None,
+             device='cuda' if torch.cuda.is_available() else 'cpu') -> Dict[str, float]:
+        """
+        Custom training method with validation and early stopping
+        """
+        self.to(device)
+    
+        # Initialize layers by doing a forward pass with the first batch
+        print("[DEBUG] Initializing model layers...")
+        try:
+            first_batch = next(iter(train_loader))
+            first_data = first_batch[0].to(device).float()  # Explicitly convert to float32
+            _ = self(first_data)
+            print("[DEBUG] Model layers initialized successfully")
+        except Exception as e:
+            print(f"[DEBUG] Error during layer initialization: {str(e)}")
+            raise
+        
+        self.train()
+        
+        # Now that layers are initialized, configure optimizer and scheduler
+        print("[DEBUG] Configuring optimizer and scheduler...")
+        try:
+            optimizer, scheduler = self.configure_optimizers(learning_rate, weight_decay)
+            print("[DEBUG] Optimizer and scheduler configured successfully")
+        except Exception as e:
+            print(f"[DEBUG] Error configuring optimizer: {str(e)}")
+            raise
+        
+        # Setup loss function with class weights if provided
+        if class_weights is not None:
+            weight_tensor = torch.tensor([class_weights[i] for i in range(len(class_weights))],
+                                    dtype=torch.float32,  # Explicitly use float32
+                                    device=device)
+            criterion = nn.CrossEntropyLoss(weight=weight_tensor)
+        else:
+            criterion = nn.CrossEntropyLoss()
+        
+        # Initialize early stopping
+        best_val_loss = float('inf')
+        patience = early_stopping_params.get('patience', 10) if early_stopping_params else 10
+        patience_counter = 0
+        best_model_state = None
+        
+        # Training metrics
+        metrics = {
+            'train_loss': [],
+            'val_loss': [],
+            'train_accuracy': [],
+            'val_accuracy': []
+        }
+        
+        print("[DEBUG] Starting training loop...")
+        for epoch in range(epochs):
+            # Training phase
+            self.train()
+            train_loss = 0.0
+            train_correct = 0
+            train_total = 0
+            
+            for batch_idx, (data, target) in enumerate(train_loader):
+                data = data.to(device).float()  # Explicitly convert to float32
+                target = target.to(device)
+                
+                optimizer.zero_grad()
+                output = self(data)
+                loss = criterion(output, target)
+                
+                loss.backward()
+                torch.nn.utils.clip_grad_norm_(self.parameters(), 1.0)
+                optimizer.step()
+                scheduler.step()
+                
+                train_loss += loss.item()
+                _, predicted = torch.max(output.data, 1)
+                train_total += target.size(0)
+                train_correct += (predicted == target).sum().item()
+            
+            avg_train_loss = train_loss / len(train_loader)
+            train_accuracy = 100. * train_correct / train_total
+            
+            # Validation phase
+            self.eval()
+            val_loss = 0.0
+            val_correct = 0
+            val_total = 0
+            
+            with torch.no_grad():
+                for data, target in validation_loader:
+                    data, target = data.to(device), target.to(device)
+                    output = self(data)
+                    loss = criterion(output, target)
+                    
+                    val_loss += loss.item()
+                    _, predicted = torch.max(output.data, 1)
+                    val_total += target.size(0)
+                    val_correct += (predicted == target).sum().item()
+            
+            avg_val_loss = val_loss / len(validation_loader)
+            val_accuracy = 100. * val_correct / val_total
+            
+            # Update metrics
+            metrics['train_loss'].append(avg_train_loss)
+            metrics['val_loss'].append(avg_val_loss)
+            metrics['train_accuracy'].append(train_accuracy)
+            metrics['val_accuracy'].append(val_accuracy)
+            
+            print(f'Epoch {epoch+1}/{epochs}:')
+            print(f'Train Loss: {avg_train_loss:.4f}, Train Acc: {train_accuracy:.2f}%')
+            print(f'Val Loss: {avg_val_loss:.4f}, Val Acc: {val_accuracy:.2f}%')
+            
+            # Early stopping check
+            if avg_val_loss < best_val_loss:
+                best_val_loss = avg_val_loss
+                best_model_state = self.state_dict()
+                patience_counter = 0
+            else:
+                patience_counter += 1
+                if patience_counter >= patience:
+                    print(f'Early stopping triggered after {epoch+1} epochs')
+                    break
+        
+        # Restore best model
+        if best_model_state is not None:
+            self.load_state_dict(best_model_state)
+        
+        # Add final metrics
+        metrics['best_val_loss'] = best_val_loss
+        metrics['final_train_loss'] = avg_train_loss
+        metrics['final_train_accuracy'] = train_accuracy
+        metrics['final_val_accuracy'] = val_accuracy
+        metrics['epochs_trained'] = epoch + 1
+        
+        return metrics

@@ -55,17 +55,18 @@ class FeatureEngineering:
             "volume": VolumeFeatures(config.get("volume_features", {}))
         }
         
-        # Initialize scalers per feature group and symbol
-        self.scalers = {}
+        # Initialize scalers
         self._initialize_scalers()
         
         self.logger.info("FeatureEngineering initialized with multi-index support")
 
     def _initialize_scalers(self) -> None:
-        """Initialize scaler dictionaries for each feature group."""
+        """Initialize scaler dictionaries for each feature group and base columns."""
         self.scalers = {
             group.name: {} for group in self.feature_groups
         }
+        # Add a new dictionary for base scalers (one per symbol)
+        self.base_scalers = {}
 
     def _get_or_create_scaler(self, group_name: str, symbol: str) -> object:
         """Get or create a scaler for a specific group and symbol."""
@@ -302,15 +303,18 @@ class FeatureEngineering:
     def _fit_transform_single(self, features: pd.DataFrame, symbol: str = None) -> np.ndarray:
         """
         Fit and transform features for a single symbol.
-        Handles both base OHLCV and generated features.
+        Now stores the base scaler for later use.
         """
         # Initialize with all columns from input features
         scaled_features = pd.DataFrame(index=features.index, columns=features.columns)
         
         # Handle OHLCV columns with RobustScaler
         base_cols = ['Open', 'High', 'Low', 'Close', 'Volume']
-        base_scaler = RobustScaler()
-        scaled_features[base_cols] = base_scaler.fit_transform(features[base_cols])
+        symbol_key = symbol or 'default'
+        
+        # Create and fit base scaler
+        self.base_scalers[symbol_key] = RobustScaler()
+        scaled_features[base_cols] = self.base_scalers[symbol_key].fit_transform(features[base_cols])
         
         # Handle generated features by group
         for group in self.feature_groups:
@@ -323,7 +327,7 @@ class FeatureEngineering:
             
             if group_cols:
                 # Get or create scaler
-                scaler = self._get_or_create_scaler(group.name, symbol or 'default')
+                scaler = self._get_or_create_scaler(group.name, symbol_key)
                 scaled = scaler.fit_transform(features[group_cols])
                 scaled_features[group_cols] = scaled
         
@@ -368,15 +372,19 @@ class FeatureEngineering:
     def _transform_single(self, features: pd.DataFrame, symbol: str = None) -> np.ndarray:
         """
         Transform features for a single symbol using fitted scalers.
-        Handles both base OHLCV and generated features.
+        Now uses the stored base scaler.
         """
         # Initialize with all columns from input features
         scaled_features = pd.DataFrame(index=features.index, columns=features.columns)
         
-        # Handle OHLCV columns with RobustScaler
+        # Handle OHLCV columns with stored RobustScaler
         base_cols = ['Open', 'High', 'Low', 'Close', 'Volume']
-        base_scaler = RobustScaler()
-        scaled_features[base_cols] = base_scaler.transform(features[base_cols])
+        symbol_key = symbol or 'default'
+        
+        # Use stored base scaler
+        if symbol_key not in self.base_scalers:
+            raise ValueError(f"No fitted base scaler found for symbol {symbol_key}. Must fit before transform.")
+        scaled_features[base_cols] = self.base_scalers[symbol_key].transform(features[base_cols])
         
         # Handle generated features by group
         for group in self.feature_groups:
@@ -389,7 +397,9 @@ class FeatureEngineering:
             
             if group_cols:
                 # Get scaler
-                scaler = self._get_or_create_scaler(group.name, symbol or 'default')
+                if symbol_key not in self.scalers[group.name]:
+                    raise ValueError(f"No fitted scaler found for {group.name} features of symbol {symbol_key}")
+                scaler = self.scalers[group.name][symbol_key]
                 scaled = scaler.transform(features[group_cols])
                 scaled_features[group_cols] = scaled
         

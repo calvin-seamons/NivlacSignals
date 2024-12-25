@@ -32,7 +32,7 @@ validation:
 # LSTM Model Configuration
 model_params:
   sequence_length: 20  # For use in data preparation
-  input_size: 128  # Must match the number of features
+  input_size: 78  # Must match the number of features
   hidden_size: 128
   num_layers: 2
   dropout: 0.2

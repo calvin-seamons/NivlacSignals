@@ -194,46 +194,75 @@ class LSTMManager:
         return combined
 
     def train(self, historical_data: Dict[str, pd.DataFrame]) -> Dict[str, float]:
-        """Enhanced training with proper multi-index data handling"""
+        """Enhanced training with proper multi-index data handling and debug prints"""
         try:
             logging.info("Starting training with multi-index support...")
+            print(f"\n[DEBUG] Initial historical data symbols: {list(historical_data.keys())}")
+            print(f"[DEBUG] Sample data shape for first symbol: {next(iter(historical_data.values())).shape}")
             
             # Validate and filter historical data
             valid_data = self._validate_historical_data(historical_data)
+            print(f"\n[DEBUG] After validation:")
+            print(f"- Valid symbols remaining: {list(valid_data.keys())}")
+            print(f"- Rows per symbol: {[df.shape[0] for df in valid_data.values()]}")
             
             # Convert to multi-index structure
             multi_index_data = self._create_multi_index_data(valid_data)
+            print(f"\n[DEBUG] Multi-index data structure:")
+            print(f"- Total shape: {multi_index_data.shape}")
+            print(f"- Index levels: {multi_index_data.index.names}")
+            print(f"- Number of unique symbols: {len(multi_index_data.index.get_level_values(1).unique())}")
             
-            # Rest of the training process remains the same...
+            # Create splitter
             splitter = TimeSeriesSplitter(
                 validation_ratio=self.config['training_params'].get('validation_ratio', 0.2),
                 gap_days=self.config['training_params'].get('gap_days', 5)
             )
+            print(f"\n[DEBUG] TimeSeriesSplitter configuration:")
+            print(f"- Validation ratio: {splitter.validation_ratio}")
+            print(f"- Gap days: {splitter.gap_days}")
             
             # Process features maintaining multi-index
-            logging.info("Processing features with multi-index...")
+            print("\n[DEBUG] Starting feature processing...")
             features = self.feature_engineering.process(multi_index_data)
+            print(f"- Processed features shape: {features.shape}")
+            print(f"- Feature columns: {list(features.columns)}")
             
             # Split features into train/val while maintaining symbol separation
             train_features, val_features = splitter.split(features)
+            print(f"\n[DEBUG] After train/val split:")
+            print(f"- Train set shape: {train_features.shape}")
+            print(f"- Validation set shape: {val_features.shape}")
+            print(f"- Train symbols: {len(train_features.index.get_level_values(1).unique())}")
+            print(f"- Val symbols: {len(val_features.index.get_level_values(1).unique())}")
             
             # Scale features
-            logging.info("Scaling features...")
+            print("\n[DEBUG] Starting feature scaling...")
             scaled_train = self.feature_engineering.fit_transform(train_features)
             scaled_val = self.feature_engineering.transform(val_features)
+            print(f"- Scaled train shape: {scaled_train.shape}")
+            print(f"- Scaled val shape: {scaled_val.shape}")
+            print(f"- Sample scaled values range: [{scaled_train.min():.3f}, {scaled_train.max():.3f}]")
             
             # Create sequences by symbol
-            logging.info("Creating sequences by symbol...")
+            print("\n[DEBUG] Creating sequences...")
             train_sequences, train_labels = self._create_multi_symbol_sequences(
                 scaled_train, train_features.index
             )
             val_sequences, val_labels = self._create_multi_symbol_sequences(
                 scaled_val, val_features.index
             )
+            print(f"- Train sequences shape: {train_sequences.shape}")
+            print(f"- Train labels shape: {train_labels.shape}")
+            print(f"- Val sequences shape: {val_sequences.shape}")
+            print(f"- Val labels shape: {val_labels.shape}")
+            print(f"- Label distribution - Train: {np.bincount(train_labels)}")
+            print(f"- Label distribution - Val: {np.bincount(val_labels)}")
             
             # Validate sequence data
             self._validate_sequence_data(train_sequences, train_labels)
             self._validate_sequence_data(val_sequences, val_labels)
+            print("\n[DEBUG] Sequence validation passed")
             
             # Compute class weights
             class_weights = compute_class_weight(
@@ -241,27 +270,41 @@ class LSTMManager:
                 classes=np.unique(train_labels),
                 y=train_labels
             )
-            
             self.config['training_params']['class_weights'] = dict(
                 enumerate(class_weights)
             )
+            print(f"\n[DEBUG] Computed class weights: {dict(enumerate(class_weights))}")
             
             # Convert to PyTorch format
             train_data = self._prepare_torch_data(train_sequences, train_labels)
             val_data = self._prepare_torch_data(val_sequences, val_labels)
+            print(f"\n[DEBUG] DataLoader details:")
+            print(f"- Train batches: {len(train_data)}")
+            print(f"- Val batches: {len(val_data)}")
+            print(f"- Batch size: {self.config['training_params'].get('batch_size', 32)}")
             
             # Train model
-            metrics = self.model.train(
-                train_data,
-                validation_data=val_data,
-                **self.config['training_params'],
-                early_stopping_params=self.config['early_stopping_params']
+            print("\n[DEBUG] Starting model training...")
+            metrics = self.model.train_model(
+                train_loader=train_data,
+                validation_loader=val_data,
+                epochs=self.config['training_params'].get('epochs', 100),
+                learning_rate=self.config['training_params'].get('learning_rate', 1e-3),
+                weight_decay=self.config['training_params'].get('weight_decay', 1e-5),
+                early_stopping_params=self.config['early_stopping_params'],
+                class_weights=self.config['training_params'].get('class_weights'),
             )
+            print(f"\n[DEBUG] Training completed. Final metrics: {metrics}")
             
             return metrics
             
         except Exception as e:
             logging.error(f"Training failed: {str(e)}")
+            print(f"\n[DEBUG] ERROR in training: {str(e)}")
+            print(f"[DEBUG] Error type: {type(e).__name__}")
+            print(f"[DEBUG] Stack trace:")
+            import traceback
+            traceback.print_exc()
             raise
 
     def _create_multi_symbol_sequences(
@@ -307,7 +350,15 @@ class LSTMManager:
                 current_price = symbol_data[i+sequence_length-1][3]  # Assuming Close is at index 3
                 future_price = symbol_data[i+sequence_length+prediction_horizon-1][3]
                 
+                # Handle divide by zero case
+                if current_price == 0 or np.isnan(current_price) or np.isnan(future_price):
+                    continue
+                    
                 future_return = (future_price - current_price) / current_price
+                
+                # Skip if return is invalid
+                if not np.isfinite(future_return):
+                    continue
                 
                 # Apply threshold
                 if abs(future_return) < threshold:
@@ -321,7 +372,8 @@ class LSTMManager:
         if not sequences:
             raise ValueError("No valid sequences created")
         
-        return np.array(sequences), np.array(labels)
+        # Convert to float32 before returning
+        return np.array(sequences, dtype=np.float32), np.array(labels, dtype=np.int64)
 
     def predict(self, data: pd.DataFrame, symbol: str) -> Dict[str, Any]:
         """
@@ -601,11 +653,12 @@ class LSTMManager:
         return features.iloc[-sequence_length:].values.reshape(1, sequence_length, -1)
     
     def _prepare_torch_data(self, sequences: np.ndarray, labels: np.ndarray) -> torch.utils.data.DataLoader:
-        """Prepare data for PyTorch training"""
-        dataset = torch.utils.data.TensorDataset(
-            torch.FloatTensor(sequences),
-            torch.LongTensor(labels)
-        )
+        """Prepare data for PyTorch training with explicit float32 dtype"""
+        # Ensure float32 and int64 dtypes
+        sequences = torch.tensor(sequences, dtype=torch.float32)
+        labels = torch.tensor(labels, dtype=torch.int64)
+        
+        dataset = torch.utils.data.TensorDataset(sequences, labels)
         
         return torch.utils.data.DataLoader(
             dataset,
