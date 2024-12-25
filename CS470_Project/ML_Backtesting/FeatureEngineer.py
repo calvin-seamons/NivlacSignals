@@ -77,12 +77,23 @@ class FeatureEngineering:
                 self.scalers[group_name][symbol] = RobustScaler()
         return self.scalers[group_name][symbol]
     
-    def _validate_data(self, data: pd.DataFrame) -> None:
-        """Validate multi-index data structure and content."""
+    def _validate_data(self, data: pd.DataFrame) -> Tuple[bool, List[str]]:
+        """
+        Validate multi-index data structure and content.
+        Returns tuple of (is_valid, excluded_symbols)
+        """
+        excluded_symbols = []
+        
         if not isinstance(data, pd.DataFrame):
             raise ValueError("Input must be a pandas DataFrame")
             
-        # Check for multi-index structure
+        # Check required columns first
+        required_columns = ['Open', 'High', 'Low', 'Close', 'Volume']
+        missing_columns = set(required_columns) - set(data.columns)
+        if missing_columns:
+            raise ValueError(f"Missing required columns: {missing_columns}")
+        
+        # Handle multi-index validation
         if isinstance(data.index, pd.MultiIndex):
             if len(data.index.levels) != 2:
                 raise ValueError("Multi-index must have exactly 2 levels (datetime, symbol)")
@@ -101,11 +112,14 @@ class FeatureEngineering:
             symbol_counts = data.groupby(level=1).size()
             insufficient_symbols = symbol_counts[symbol_counts < min_samples].index
             if len(insufficient_symbols) > 0:
-                raise ValueError(
-                    f"Insufficient data for symbols {list(insufficient_symbols)}. "
-                    f"Need at least {min_samples} samples per symbol."
+                excluded_symbols.extend(insufficient_symbols)
+                self.logger.warning(
+                    f"Found symbols with insufficient data: {list(insufficient_symbols)}. "
+                    f"Need at least {min_samples} samples per symbol. These will be excluded."
                 )
-    
+        
+        return len(excluded_symbols) < len(data.index.get_level_values(1).unique()), excluded_symbols
+
     def process(self, data: pd.DataFrame) -> pd.DataFrame:
         """
         Generate all features for the input data.
@@ -117,7 +131,8 @@ class FeatureEngineering:
             DataFrame containing all generated features
         """
         try:
-            self._validate_data(data)
+            # Validate data and get excluded symbols
+            is_valid, excluded_symbols = self._validate_data(data)
             
             if not isinstance(data.index, pd.MultiIndex):
                 self.logger.warning("Input data is not multi-indexed. Converting to single symbol format.")
@@ -125,15 +140,14 @@ class FeatureEngineering:
             
             # Get valid symbols (excluding those with insufficient data)
             symbols = data.index.get_level_values(1).unique()
-            min_samples = self.config.get("min_samples", 100)
-            symbol_counts = data.groupby(level=1).size()
-            valid_symbols = symbol_counts[symbol_counts >= min_samples].index
+            valid_symbols = [sym for sym in symbols if sym not in excluded_symbols]
             
-            if len(valid_symbols) < len(symbols):
-                excluded = set(symbols) - set(valid_symbols)
-                self.logger.warning(f"Excluding symbols with insufficient data: {excluded}")
+            if not valid_symbols:
+                raise ValueError("No valid symbols remain after filtering")
             
-            # In the process method, before concatenating:
+            if excluded_symbols:
+                self.logger.info(f"Processing {len(valid_symbols)} symbols, excluded {len(excluded_symbols)} symbols")
+            
             processed_dfs = []
             for symbol in valid_symbols:
                 self.logger.info(f"Processing features for symbol {symbol}")
@@ -149,6 +163,9 @@ class FeatureEngineering:
                 processed_symbol['symbol'] = symbol
                 processed_symbol.set_index('symbol', append=True, inplace=True)
                 processed_dfs.append(processed_symbol)
+            
+            if not processed_dfs:
+                raise ValueError("No data processed successfully")
                 
             all_features = pd.concat(processed_dfs)
             all_features.sort_index(inplace=True)
@@ -160,55 +177,89 @@ class FeatureEngineering:
     
     def _process_single_symbol(self, data: pd.DataFrame) -> pd.DataFrame:
         """Process features for a single symbol with column validation."""
-        # Get expected columns
-        expected_columns = self.get_all_expected_columns()
-        
-        # Initialize with original OHLCV data
-        all_features = data[['Open', 'High', 'Low', 'Close', 'Volume']].copy()
-        
-        # Generate features for each enabled group
-        for group in self.feature_groups:
-            if not group.enabled:
-                continue
-                
-            self.logger.info(f"Generating {group.name} features")
+        try:
+            # Get expected columns
+            expected_columns = self.get_all_expected_columns()
             
+            # Initialize with original OHLCV data
+            all_features = data[['Open', 'High', 'Low', 'Close', 'Volume']].copy()
+            
+            # Generate features for each enabled group
+            for group in self.feature_groups:
+                if not group.enabled:
+                    continue
+                    
+                self.logger.info(f"Generating {group.name} features")
+                
+                try:
+                    generator = self.feature_generators[group.name]
+                    features = generator.generate(data)
+                    
+                    # Validate feature generation output
+                    if features is None:
+                        self.logger.warning(f"{group.name} generator returned None. Skipping.")
+                        continue
+                        
+                    if not isinstance(features, pd.DataFrame):
+                        self.logger.warning(f"{group.name} generator returned non-DataFrame. Skipping.")
+                        continue
+                    
+                    if features.empty:
+                        self.logger.warning(f"{group.name} generator returned empty DataFrame. Skipping.")
+                        continue
+                    
+                    # Add prefix to avoid name collisions
+                    features = features.add_prefix(f"{group.name}_")
+                    
+                    # Replace any None values with NaN before concatenation
+                    features = features.fillna(value=np.nan)
+                    
+                    # Validate feature columns match expected
+                    expected_group_cols = [
+                        col for col in expected_columns 
+                        if col.startswith(f"{group.name}_")
+                    ]
+                    
+                    if set(features.columns) != set(expected_group_cols):
+                        missing = set(expected_group_cols) - set(features.columns)
+                        extra = set(features.columns) - set(expected_group_cols)
+                        
+                        if missing:
+                            self.logger.warning(f"Missing expected features: {missing}")
+                            # Add missing columns as NaN
+                            for col in missing:
+                                features[col] = np.nan
+                                
+                        if extra:
+                            self.logger.warning(f"Extra features found: {extra}")
+                            # Remove extra columns
+                            features = features[expected_group_cols]
+                    
+                    # Convert any remaining None values to NaN
+                    features = features.replace({None: np.nan})
+                    
+                    # Add to results
+                    all_features = pd.concat([all_features, features], axis=1)
+                    
+                except Exception as e:
+                    self.logger.error(f"Error generating {group.name} features: {str(e)}")
+                    # Instead of raising, we'll continue with other feature groups
+                    continue
+            
+            # Ensure all expected columns are present in correct order
+            all_features = all_features.reindex(columns=expected_columns)
+            
+            # Handle invalid values before returning
             try:
-                generator = self.feature_generators[group.name]
-                features = generator.generate(data)
-                
-                # Add prefix to avoid name collisions
-                features = features.add_prefix(f"{group.name}_")
-                
-                # Validate feature columns match expected
-                expected_group_cols = [
-                    col for col in expected_columns 
-                    if col.startswith(f"{group.name}_")
-                ]
-                if set(features.columns) != set(expected_group_cols):
-                    missing = set(expected_group_cols) - set(features.columns)
-                    extra = set(features.columns) - set(expected_group_cols)
-                    if missing:
-                        self.logger.warning(f"Missing expected features: {missing}")
-                        # Add missing columns as NaN
-                        for col in missing:
-                            features[col] = np.nan
-                    if extra:
-                        self.logger.warning(f"Extra features found: {extra}")
-                        # Remove extra columns
-                        features = features[expected_group_cols]
-                
-                # Add to results
-                all_features = pd.concat([all_features, features], axis=1)
-                
+                return self._handle_invalid_values(all_features)
             except Exception as e:
-                self.logger.error(f"Error generating {group.name} features: {str(e)}")
-                raise
-        
-        # Ensure all expected columns are present in correct order
-        all_features = all_features.reindex(columns=expected_columns)
-        
-        return self._handle_invalid_values(all_features)
+                self.logger.error(f"Error handling invalid values: {str(e)}")
+                # If invalid value handling fails, return the original features with NaN fill
+                return all_features.fillna(0)
+                
+        except Exception as e:
+            self.logger.error(f"Critical error in _process_single_symbol: {str(e)}")
+            raise
 
     def fit_transform(self, data: pd.DataFrame) -> np.ndarray:
         """
@@ -356,33 +407,38 @@ class FeatureEngineering:
             DataFrame with invalid values handled
         """
         try:
+            # Make a copy to avoid modifying the original
+            df = features.copy()
+            
+            # Replace None values first
+            df = df.replace({None: np.nan})
+            
             # Convert all columns to numeric, coercing errors to NaN
-            numeric_features = features.apply(pd.to_numeric, errors='coerce')
+            for col in df.columns:
+                try:
+                    df[col] = pd.to_numeric(df[col], errors='coerce')
+                except Exception as e:
+                    self.logger.warning(f"Error converting column {col} to numeric: {str(e)}")
+                    df[col] = df[col].replace([np.inf, -np.inf, None], np.nan)
             
             # Replace infinite values with NaN
-            numeric_features = numeric_features.replace([np.inf, -np.inf], np.nan)
+            df = df.replace([np.inf, -np.inf], np.nan)
             
             # Forward fill NaN values (use previous valid value)
-            numeric_features = numeric_features.ffill()
+            df = df.ffill()
             
             # Backward fill any remaining NaN values at the start
-            numeric_features = numeric_features.bfill()
+            df = df.bfill()
             
-            # If any NaN values still remain, replace with 0
-            # This should be rare and only happen if an entire column is NaN
-            numeric_features = numeric_features.fillna(0)
+            # Fill any remaining NaN values with 0
+            df = df.fillna(0)
             
-            # Verify all values are finite
-            if not numeric_features.apply(np.isfinite).all().all():
-                self.logger.warning("Some invalid values remain after handling")
-                # Replace any remaining non-finite values with 0
-                numeric_features = numeric_features.replace([np.inf, -np.inf], 0)
-            
-            return numeric_features
+            return df
             
         except Exception as e:
             self.logger.error(f"Error handling invalid values: {str(e)}")
-            raise
+            # Return original with simple NaN filling as fallback
+            return features.fillna(0)
 
     def get_all_expected_columns(self) -> List[str]:
         """Get complete list of expected columns including OHLCV"""
