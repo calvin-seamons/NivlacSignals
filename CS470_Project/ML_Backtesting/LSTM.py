@@ -194,7 +194,6 @@ class DirectionalLSTM(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # Input shape: [batch_size, sequence_length, feature_dim]
         batch_size, seq_len, features = x.size()
-        print(f"[DEBUG] Input shape: batch_size={batch_size}, seq_len={seq_len}, features={features}")
         
         # Initialize layers if this is the first forward pass
         if self.lstm_layers is None:
@@ -207,7 +206,6 @@ class DirectionalLSTM(nn.Module):
         
         # Initialize input_norm with the correct feature dimension
         if not hasattr(self, 'input_size_set') or not self.input_size_set:
-            print(f"[DEBUG] Initializing BatchNorm1d with features={features}")
             self.input_norm = nn.BatchNorm1d(features)
             if next(self.parameters()).is_cuda:
                 self.input_norm = self.input_norm.cuda()
@@ -216,11 +214,9 @@ class DirectionalLSTM(nn.Module):
         # Apply input normalization
         # Reshape to [batch_size * seq_len, features] for BatchNorm1d
         x = x.reshape(-1, features)
-        print(f"[DEBUG] Shape before BatchNorm1d: {x.shape}")
         x = self.input_norm(x)
         # Reshape back to [batch_size, seq_len, features]
         x = x.reshape(batch_size, seq_len, features)
-        print(f"[DEBUG] Shape after BatchNorm1d reshape: {x.shape}")
         
         # Process LSTM layers with residual connections
         for i, lstm_layer in enumerate(self.lstm_layers):
@@ -229,7 +225,6 @@ class DirectionalLSTM(nn.Module):
             
             # Apply LSTM layer - input: [batch_size, seq_len, features]
             x, _ = lstm_layer(x)  # We're not using the hidden states, so we can ignore them
-            print(f"[DEBUG] Shape after LSTM layer {i}: {x.shape}")
             
             # Add residual connection if enabled
             if i > 0 and self.config.residual_connections:
@@ -238,7 +233,6 @@ class DirectionalLSTM(nn.Module):
         # Apply attention mechanism
         # Input: [batch_size, seq_len, hidden_size]
         x = self.attention(x)
-        print(f"[DEBUG] Shape after attention: {x.shape}")
         
         # Final processing
         x = self.final_norm(x)
@@ -247,7 +241,6 @@ class DirectionalLSTM(nn.Module):
         # Get last sequence output - select last timestep
         # From: [batch_size, seq_len, hidden_size] to [batch_size, hidden_size]
         x = x[:, -1, :]
-        print(f"[DEBUG] Shape after selecting last timestep: {x.shape}")
         
         # Dense layers
         x = F.relu(self.dense(x))
@@ -257,7 +250,6 @@ class DirectionalLSTM(nn.Module):
         x = self.output(x)
         # Apply softmax for probabilities
         probabilities = F.softmax(x, dim=-1)
-        print(f"[DEBUG] Final output shape: {probabilities.shape}")
         
         return probabilities
 
