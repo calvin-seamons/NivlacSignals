@@ -11,6 +11,17 @@ paths:
   daily_data_dir: "data/cache/daily_data"
   temp_dir: "data/cache/temp/downloads"
 
+# Download Configuration
+download:
+  batch_size: 5  # ThreadPoolExecutor max_workers setting
+  max_retries: 3  # Number of retry attempts for failed downloads
+  retry_delay: 5  # Delay in seconds between retry attempts
+
+# Cache Configuration
+cache:
+  max_memory_cache_size: 1000  # Maximum number of symbols to keep in memory cache
+  cache_expiry_days: 30  # How long to consider cached data valid
+
 # Factor Pipeline Configuration
 factor_pipeline:
   model_weight: 0.7
@@ -28,6 +39,8 @@ validation:
   price_threshold: 5.0  # Minimum price filter
   volume_threshold: 100000  # Minimum daily volume
   data_quality_threshold: 0.95
+  max_missing_pct: 0.1  # Maximum percentage of missing values allowed
+  min_data_points: 20  # Minimum number of data points required for valid data
 
 # LSTM Model Configuration
 model_params:
@@ -135,3 +148,4 @@ optimization_params:
     n_parallel: 4
   metrics:
     primary: 'sharpe_ratio'
+
