@@ -43,12 +43,11 @@ class Backtest:
     def fetch_historical_data(self, symbols: List[str]) -> Dict[str, pd.DataFrame]:
         """
         Fetch historical data for the specified symbols using BacktestDataManager.
+        Filters out any symbols with less than 100 days of data.
         
         Args:
             symbols (List[str]): List of stock symbols
-            start_date (str): Start date for historical data
-            end_date (str): End date for historical data
-            
+                
         Returns:
             Dict[str, pd.DataFrame]: Dictionary mapping symbols to their historical data
         """
@@ -78,15 +77,24 @@ class Backtest:
         # Fetch data using data manager
         try:
             self.logger.info("Calling data_manager.get_data")
-            self.historical_data = self.data_manager.get_data(symbols, start_dt, end_dt)
-            self.logger.info(f"Retrieved data for {len(self.historical_data)} symbols")
+            raw_data = self.data_manager.get_data(symbols, start_dt, end_dt)
+            
+            # Filter out symbols with insufficient data
+            self.historical_data = {}
+            for symbol, df in raw_data.items():
+                if len(df) >= 100:  # Only keep symbols with at least 100 days of data
+                    self.historical_data[symbol] = df
+                else:
+                    self.logger.warning(f"Dropping {symbol} - insufficient data ({len(df)} days)")
+            
+            self.logger.info(f"Retrieved data for {len(self.historical_data)} symbols after filtering")
             
             if not self.historical_data:
-                self.logger.warning("No data was retrieved from BacktestDataManager")
+                self.logger.warning("No data remained after filtering")
             else:
                 for symbol in self.historical_data:
                     df = self.historical_data[symbol]
-                    self.logger.info(f"Retrieved {len(df)} rows for {symbol}")
+                    self.logger.info(f"Retained {len(df)} rows for {symbol}")
                     
             return self.historical_data
             

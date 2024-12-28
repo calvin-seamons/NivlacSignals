@@ -285,7 +285,7 @@ class DirectionalLSTM(nn.Module):
         scheduler = torch.optim.lr_scheduler.OneCycleLR(
             optimizer,
             max_lr=learning_rate,
-            epochs=100,
+            epochs=1000,
             steps_per_epoch=100,
             pct_start=0.3,
             anneal_strategy='cos'
